@@ -44,16 +44,16 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
 
   const createParticles = (x: number, y: number) => {
     const newParticles: Particle[] = [];
-    for (let i = 0; i < 50; i++) {
-      // Más partículas
+    for (let i = 0; i < 30; i++) {
+      // Menos partículas para mejor rendimiento
       newParticles.push({
         id: i,
         x: x,
         y: y,
-        vx: (Math.random() - 0.5) * 40, // Velocidad más alta para mejor distribución
-        vy: (Math.random() - 0.5) * 40,
+        vx: (Math.random() - 0.5) * 20, // Velocidad más controlada
+        vy: (Math.random() - 0.5) * 20,
         opacity: 1,
-        size: Math.random() * 8 + 4, // Partículas más grandes y variadas
+        size: Math.random() * 6 + 3, // Partículas más pequeñas
         color: colors[Math.floor(Math.random() * colors.length)],
       });
     }
@@ -68,14 +68,14 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           prev
             .map((particle) => ({
               ...particle,
-              x: particle.x + particle.vx * 0.8, // Movimiento más suave
-              y: particle.y + particle.vy * 0.8,
-              opacity: particle.opacity - 0.008, // Desvanecimiento mucho más lento
-              size: particle.size - 0.02, // Reducción más lenta del tamaño
+              x: particle.x + particle.vx * 0.05, // Velocidad más baja para movimiento más suave
+              y: particle.y + particle.vy * 0.05,
+              opacity: particle.opacity - 0.005, // Desvanecimiento más lento
+              size: particle.size - 0.01, // Reducción más lenta del tamaño
             }))
             .filter((particle) => particle.opacity > 0)
         );
-      }, 20); // Intervalo más lento para animación más suave
+      }, 16); // 60 FPS para animación más fluida
 
       return () => clearInterval(interval);
     }
@@ -111,10 +111,8 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
               height: particle.size,
               backgroundColor: particle.color,
               transform: "translate(-50%, -50%)",
-              boxShadow: `0 0 ${particle.size * 3}px ${particle.color}, 0 0 ${
-                particle.size * 6
-              }px ${particle.color}40`,
-              filter: "blur(0.5px)",
+              boxShadow: `0 0 ${particle.size * 2}px ${particle.color}`,
+              willChange: "transform, opacity", // Optimización para animaciones
             }}
           />
         ))}
@@ -134,17 +132,21 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           <h1 className="md:text-8xl text-6xl font-bold text-white  mb-2">
             Vía Nova
           </h1>
-          <p className="md:text-3xl text-2xl text-white">COMPLEJO DEPORTIVO</p>
+          <p className="md:text-3xl text-xl text-white">COMPLEJO DEPORTIVO</p>
         </div>
 
         {/* Botón de ingreso */}
         <Button
           onClick={handleEnter}
           disabled={isLoading}
-          className={`bg-white text-black hover:bg-gray-200 md:px-16 md:py-6 px-10 py-4 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 ${
+          className={`bg-white text-black hover:bg-gray-200 md:px-16 md:py-6 px-16 py-8 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 animate-float shadow-lg hover:shadow-xl ${
             isLoading ? "animate-pulse" : ""
           }`}
-          size="lg"
+          style={{
+            animation: isLoading
+              ? "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite"
+              : "glow 2s ease-in-out infinite alternate, float 3s ease-in-out infinite",
+          }}
         >
           {isLoading ? "Ingresando..." : "Ingresar"}
         </Button>
