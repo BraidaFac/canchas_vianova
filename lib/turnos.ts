@@ -1,21 +1,18 @@
 import { getGoogleSheet } from "./google-sheets";
 
-/** Estructura que devolvemos */
-export interface HorarioLibre {
-  turnoId: string;
+/** Estructura que devolvemos para cada turno */
+export interface Turno {
+  turnoId: number;
   horaInicio: string;
   horaFin: string;
+  canchaId: number;
+  numeroCancha: number;
+  cantJugadores?: number;
 }
 
-export type TurnosLibresPorCancha = Record<string, HorarioLibre[]>;
+export type TurnosPorCancha = Record<string, Turno[]>;
 
-/**
- * Devuelve los turnos libres de la fecha dada agrupados por número de cancha.
- * claveFecha debe llegar en el mismo formato que se usa en la hoja (“DD/MM” o “AAAA‑MM‑DD”, etc.).
- */
-export async function getTurnosLibresPorFecha(
-  fecha: string
-): Promise<TurnosLibresPorCancha> {
+export async function getTurnosDisponibles(): Promise<TurnosPorCancha> {
   const doc = await getGoogleSheet();
 
   // Accedemos por título para evitar depender del índice.
@@ -39,50 +36,51 @@ export async function getTurnosLibresPorFecha(
   /* ---------- Mapas de búsqueda rápida ---------- */
 
   // idTurno -> {horaInicio, horaFin}
-  const turnosMap = new Map<string, { horaInicio: string; horaFin: string }>();
+  const turnosMap = new Map<number, { horaInicio: string; horaFin: string }>();
   for (const row of turnos) {
-    turnosMap.set(row.get("Id"), {
+    turnosMap.set(+row.get("Id"), {
       horaInicio: row.get("HoraInicio"),
       horaFin: row.get("HoraFin"),
     });
   }
-  const canchasMap = new Map<string, { numero: string; jugadores: string }>();
+
+  // idCancha -> {numero, jugadores}
+  const canchasMap = new Map<number, { numero: number; jugadores: number }>();
   for (const row of canchas) {
-    canchasMap.set(row.get("Id"), {
-      numero: row.get("NumeroCancha"),
-      jugadores: row.get("CantJugadores"),
+    canchasMap.set(+row.get("Id"), {
+      numero: +row.get("NumeroCancha"),
+      jugadores: +row.get("CantJugadores"),
     });
   }
-  /* ---------- Recorremos la hoja Libres ---------- */
 
-  const resultado: TurnosLibresPorCancha = {};
+  /* ---------- Procesamos turnos libres ---------- */
 
+  const resultado: TurnosPorCancha = {};
+
+  // Procesar turnos libres
   for (const row of libres) {
-    if (row.get("Fecha") !== fecha) continue; // Solo la fecha solicitada
-
-    const turnoId = row.get("Turno");
-    const canchaId = row.get("Cancha");
-
+    const fecha = row.get("Fecha");
+    const turnoId = +row.get("Turno");
+    const canchaId = +row.get("Cancha");
     const turno = turnosMap.get(turnoId);
     const cancha = canchasMap.get(canchaId);
-
-    // Si falta algo, descartamos la fila silenciosamente
     if (!turno || !cancha) continue;
 
-    const key = cancha.numero; // o usa canchaId si prefieres
-    if (!resultado[key]) resultado[key] = [];
+    if (!resultado[fecha]) resultado[fecha] = [];
 
-    resultado[key].push({
-      turnoId,
+    resultado[fecha].push({
+      turnoId: +turnoId,
       horaInicio: turno.horaInicio,
       horaFin: turno.horaFin,
+      canchaId: +canchaId,
+      numeroCancha: +cancha.numero,
+      cantJugadores: +cancha.jugadores,
     });
   }
 
-  // Ordenamos cada lista por horaInicio (alfabético basta si usan HH:MM)
+  // Ordenamos cada lista por horaInicio
   for (const can of Object.keys(resultado)) {
     resultado[can].sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
   }
-
   return resultado;
 }

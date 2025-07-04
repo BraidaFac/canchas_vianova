@@ -16,11 +16,11 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import WelcomeScreen from "@/components/WelcomeScreen";
-import { HorarioLibre } from "@/lib/turnos";
+import { Turno } from "@/lib/turnos";
 import { cn } from "@/lib/utils";
 
 // Tipo para los turnos disponibles
-type TurnosDisponibles = Record<string, HorarioLibre[]>;
+type TurnosDisponibles = Record<string, Turno[]>;
 
 export default function TurnosPage() {
   const [mostrarBienvenida, setMostrarBienvenida] = useState(true);
@@ -40,6 +40,7 @@ export default function TurnosPage() {
   const [warning, setWarning] = useState<string | null>(null);
   const [hoy, setHoy] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [allTurnos, setAllTurnos] = useState<Record<string, Turno[]>>({});
 
   const obtenerTurnosDisponibles = async (fecha: Date) => {
     if (!mounted) return;
@@ -47,16 +48,26 @@ export default function TurnosPage() {
     setError(null);
 
     try {
-      // Formatear la fecha como YYYY-MM-DD para la API
+      // Formatear la fecha como DD/MM para filtrar
       const fechaFormateada = format(fecha, "dd/MM");
-      const turnos = await fetch(`/api/turnos?fecha=${fechaFormateada}`);
-      const turnosDisponibles = await turnos.json();
-      console.log(turnosDisponibles);
 
-      setTurnosDisponibles(turnosDisponibles);
+      // Filtrar los turnos por fecha desde allTurnos
+      const turnosFiltrados: TurnosDisponibles = {
+        cancha1: [],
+        cancha2: [],
+      };
+
+      if (allTurnos[fechaFormateada]) {
+        turnosFiltrados.cancha1 = allTurnos[fechaFormateada].filter(
+          (turno) => turno.canchaId === 1
+        );
+        turnosFiltrados.cancha2 = allTurnos[fechaFormateada].filter(
+          (turno) => turno.canchaId === 2
+        );
+      }
+      setTurnosDisponibles(turnosFiltrados);
     } catch {
       setError("No se pudieron cargar los turnos. Intenta de nuevo más tarde.");
-      // Usar datos de ejemplo en caso de error
       setTurnosDisponibles({
         cancha1: [],
         cancha2: [],
@@ -105,9 +116,23 @@ export default function TurnosPage() {
     setMostrarBienvenida(false);
   };
 
+  const obtenerAllTurnos = async () => {
+    try {
+      setCargando(true);
+      const turnos = await fetch("/api/turnos");
+      const allTurnos = await turnos.json();
+      setAllTurnos(allTurnos);
+    } catch {
+      setError("No se pudieron cargar los turnos. Intenta de nuevo más tarde.");
+    } finally {
+      setCargando(false);
+    }
+  };
+
   useEffect(() => {
     setHoy(startOfToday());
     setMounted(true);
+    obtenerAllTurnos();
   }, []);
 
   useEffect(() => {
@@ -171,10 +196,11 @@ export default function TurnosPage() {
                   className="mx-auto"
                   classNames={{
                     day_selected:
-                      "bg-green-600 text-primary-foreground hover:bg-green-600 hover:text-primary-foreground focus:bg-green-600 focus:text-primary-foreground",
+                      "text-primary-foreground  hover:text-primary-foreground  focus:text-primary-foreground",
                     day_today:
                       "bg-accent text-accent-foreground text-destructive",
                     day: cn(
+                      "hover:bg-gray-100 hover:text-primary-foreground",
                       "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
                     ),
                     day_disabled: "text-muted-foreground opacity-50",
@@ -209,6 +235,10 @@ export default function TurnosPage() {
               <li className="flex items-start gap-2">
                 <span className="mt-0.5 h-2 w-2 rounded-full bg-green-600" />
                 <span>Verás los horarios disponibles para cada cancha</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 h-2 w-2 rounded-full bg-green-600" />
+                <span>Los turnos después de 15 días no están disponibles</span>
               </li>
             </ul>
           </div>
@@ -255,20 +285,19 @@ export default function TurnosPage() {
                 <Separator />
                 <ScrollArea className="h-[300px]">
                   <div className="space-y-2 px-1">
-                    {turnosDisponibles["1"] &&
-                    turnosDisponibles["1"].length > 0 ? (
-                      turnosDisponibles["1"].map((horario) => (
+                    {turnosDisponibles.cancha1 &&
+                    turnosDisponibles.cancha1.length > 0 ? (
+                      turnosDisponibles.cancha1.map((turno) => (
                         <Button
-                          key={`c1-${horario.turnoId}`}
-                          variant="outline"
-                          className="w-full text-center text-green-700"
+                          key={`c1-${turno.turnoId}`}
+                          className={`w-full text-center ${"text-green-700 hover:bg-green-50"}`}
                         >
-                          {horario.horaInicio} - {horario.horaFin}
+                          {turno.horaInicio} - {turno.horaFin}
                         </Button>
                       ))
                     ) : (
-                      <p className="text-center text-sm text-red-700">
-                        No hay turnos disponibles
+                      <p className="text-center text-sm text-gray-500">
+                        No hay turnos para esta fecha
                       </p>
                     )}
                   </div>
@@ -280,20 +309,19 @@ export default function TurnosPage() {
                 <Separator />
                 <ScrollArea className="h-[300px]">
                   <div className="space-y-2 px-1">
-                    {turnosDisponibles["2"] &&
-                    turnosDisponibles["2"].length > 0 ? (
-                      turnosDisponibles["2"].map((horario) => (
+                    {turnosDisponibles.cancha2 &&
+                    turnosDisponibles.cancha2.length > 0 ? (
+                      turnosDisponibles.cancha2.map((turno) => (
                         <Button
-                          key={`c2-${horario.turnoId}`}
-                          variant="outline"
-                          className="w-full text-center text-green-700"
+                          key={`c2-${turno.turnoId}`}
+                          className={`w-full text-center ${"text-green-700 hover:bg-green-50"}`}
                         >
-                          {horario.horaInicio} - {horario.horaFin}
+                          {turno.horaInicio} - {turno.horaFin}
                         </Button>
                       ))
                     ) : (
-                      <p className="text-center text-sm text-red-700">
-                        No hay turnos disponibles
+                      <p className="text-center text-sm text-gray-500">
+                        No hay turnos para esta fecha
                       </p>
                     )}
                   </div>
