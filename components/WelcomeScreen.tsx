@@ -44,16 +44,28 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
 
   const createParticles = (x: number, y: number) => {
     const newParticles: Particle[] = [];
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+
     for (let i = 0; i < 30; i++) {
-      // Menos partículas para mejor rendimiento
+      // Crear partículas que se expandan por toda la pantalla
+      const targetX = Math.random() * screenWidth;
+      const targetY = Math.random() * screenHeight;
+
+      // Calcular velocidad hacia el objetivo
+      const dx = targetX - x;
+      const dy = targetY - y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const speed = 15 + Math.random() * 20; // Velocidad mucho más alta
+
       newParticles.push({
         id: i,
         x: x,
         y: y,
-        vx: (Math.random() - 0.5) * 20, // Velocidad más controlada
-        vy: (Math.random() - 0.5) * 20,
+        vx: (dx / distance) * speed, // Velocidad hacia el objetivo
+        vy: (dy / distance) * speed,
         opacity: 1,
-        size: Math.random() * 6 + 3, // Partículas más pequeñas
+        size: Math.random() * 6 + 3,
         color: colors[Math.floor(Math.random() * colors.length)],
       });
     }
@@ -68,10 +80,10 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           prev
             .map((particle) => ({
               ...particle,
-              x: particle.x + particle.vx * 0.05, // Velocidad más baja para movimiento más suave
-              y: particle.y + particle.vy * 0.05,
-              opacity: particle.opacity - 0.005, // Desvanecimiento más lento
-              size: particle.size - 0.01, // Reducción más lenta del tamaño
+              x: particle.x + particle.vx * 0.3, // Movimiento mucho más rápido
+              y: particle.y + particle.vy * 0.3,
+              opacity: particle.opacity - 0.008, // Desvanecimiento más rápido
+              size: particle.size - 0.02, // Reducción más rápida del tamaño
             }))
             .filter((particle) => particle.opacity > 0)
         );
