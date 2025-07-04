@@ -2,7 +2,7 @@
 import { addDays, format, isAfter, isBefore, startOfToday } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ export default function TurnosPage() {
   const [hoy, setHoy] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
   const [allTurnos, setAllTurnos] = useState<Record<string, Turno[]>>({});
+  const initializedRef = useRef(false);
 
   const obtenerTurnosDisponibles = async (fecha: Date) => {
     if (!mounted) return;
@@ -130,9 +131,13 @@ export default function TurnosPage() {
   };
 
   useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
     setHoy(startOfToday());
     setMounted(true);
     obtenerAllTurnos();
+    console.log("efecto");
   }, []);
 
   useEffect(() => {
@@ -289,7 +294,7 @@ export default function TurnosPage() {
                     turnosDisponibles.cancha1.length > 0 ? (
                       turnosDisponibles.cancha1.map((turno) => (
                         <Button
-                          key={`c1-${turno.turnoId}`}
+                          key={turno.id}
                           className={`w-full text-center ${"text-green-700 hover:bg-green-50"}`}
                         >
                           {turno.horaInicio} - {turno.horaFin}
@@ -313,7 +318,7 @@ export default function TurnosPage() {
                     turnosDisponibles.cancha2.length > 0 ? (
                       turnosDisponibles.cancha2.map((turno) => (
                         <Button
-                          key={`c2-${turno.turnoId}`}
+                          key={turno.id}
                           className={`w-full text-center ${"text-green-700 hover:bg-green-50"}`}
                         >
                           {turno.horaInicio} - {turno.horaFin}

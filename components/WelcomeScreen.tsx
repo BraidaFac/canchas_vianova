@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 interface WelcomeScreenProps {
@@ -43,15 +44,16 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
 
   const createParticles = (x: number, y: number) => {
     const newParticles: Particle[] = [];
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 50; i++) {
+      // Más partículas
       newParticles.push({
         id: i,
         x: x,
         y: y,
-        vx: (Math.random() - 0.5) * 25, // Velocidad más alta para distribuir por toda la pantalla
-        vy: (Math.random() - 0.5) * 25,
+        vx: (Math.random() - 0.5) * 40, // Velocidad más alta para mejor distribución
+        vy: (Math.random() - 0.5) * 40,
         opacity: 1,
-        size: Math.random() * 6 + 3, // Partículas un poco más grandes
+        size: Math.random() * 8 + 4, // Partículas más grandes y variadas
         color: colors[Math.floor(Math.random() * colors.length)],
       });
     }
@@ -66,14 +68,14 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           prev
             .map((particle) => ({
               ...particle,
-              x: particle.x + particle.vx,
-              y: particle.y + particle.vy,
-              opacity: particle.opacity - 0.015, // Desvanecimiento más lento
-              size: particle.size - 0.05,
+              x: particle.x + particle.vx * 0.8, // Movimiento más suave
+              y: particle.y + particle.vy * 0.8,
+              opacity: particle.opacity - 0.008, // Desvanecimiento mucho más lento
+              size: particle.size - 0.02, // Reducción más lenta del tamaño
             }))
             .filter((particle) => particle.opacity > 0)
         );
-      }, 16);
+      }, 20); // Intervalo más lento para animación más suave
 
       return () => clearInterval(interval);
     }
@@ -109,26 +111,37 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
               height: particle.size,
               backgroundColor: particle.color,
               transform: "translate(-50%, -50%)",
-              boxShadow: `0 0 ${particle.size * 2}px ${particle.color}`,
+              boxShadow: `0 0 ${particle.size * 3}px ${particle.color}, 0 0 ${
+                particle.size * 6
+              }px ${particle.color}40`,
+              filter: "blur(0.5px)",
             }}
           />
         ))}
 
       <div className="text-center space-y-8">
         {/* Logo de la empresa */}
-        <div className="mb-8">
-          <div className="w-32 h-32 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
-            <span className="text-4xl font-bold text-black">VN</span>
+        <div className="mb-8 flex flex-col items-center justify-center">
+          <div className="w-full h-full mx-auto mb-4  rounded-full flex items-center justify-center">
+            <Image
+              src="/blanco.png"
+              alt="ViaNova Logo"
+              width={500}
+              height={500}
+              className="w-full h-full object-contain"
+            />
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">ViaNova</h1>
-          <p className="text-gray-300 text-lg">Turnos de Canchas</p>
+          <h1 className="md:text-8xl text-6xl font-bold text-white  mb-2">
+            Vía Nova
+          </h1>
+          <p className="md:text-3xl text-2xl text-white">COMPLEJO DEPORTIVO</p>
         </div>
 
         {/* Botón de ingreso */}
         <Button
           onClick={handleEnter}
           disabled={isLoading}
-          className={`bg-white text-black hover:bg-gray-200 px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 ${
+          className={`bg-white text-black hover:bg-gray-200 md:px-16 md:py-6 px-10 py-4 text-lg font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 ${
             isLoading ? "animate-pulse" : ""
           }`}
           size="lg"

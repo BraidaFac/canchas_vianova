@@ -41,9 +41,11 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-logo: var(--logo);
 }
 
 :root {
+  --logo: #133e34;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
@@ -118,5 +120,14 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .text-logo {
+    color: var(--logo);
+  }
+  .bg-logo {
+    background-color: var(--logo);
   }
 }

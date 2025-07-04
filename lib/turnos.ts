@@ -8,6 +8,7 @@ export interface Turno {
   canchaId: number;
   numeroCancha: number;
   cantJugadores?: number;
+  id: number;
 }
 
 export type TurnosPorCancha = Record<string, Turno[]>;
@@ -75,6 +76,7 @@ export async function getTurnosDisponibles(): Promise<TurnosPorCancha> {
       canchaId: +canchaId,
       numeroCancha: +cancha.numero,
       cantJugadores: +cancha.jugadores,
+      id: +row.rowNumber,
     });
   }
 
