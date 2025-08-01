@@ -2,15 +2,20 @@ import { getTurnosDisponibles } from "@/lib/turnos";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  try {
-    // Obtener la fecha de la URL
+  // Obtener la fecha de la URL
 
+  try {
     // Obtener TODOS los turnos para la fecha (libres y ocupados)
     const todosLosTurnos = await getTurnosDisponibles();
 
+    if (!todosLosTurnos) {
+      return NextResponse.json(
+        { error: "No hay turnos disponibles" },
+        { status: 404 }
+      );
+    }
     return NextResponse.json(todosLosTurnos);
-  } catch (error) {
-    console.error("Error en la API de turnos:", error);
+  } catch {
     return NextResponse.json(
       { error: "Error al obtener los turnos" },
       { status: 500 }

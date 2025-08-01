@@ -13,7 +13,7 @@ export interface Turno {
 
 export type TurnosPorCancha = Record<string, Turno[]>;
 
-export async function getTurnosDisponibles(): Promise<TurnosPorCancha> {
+export async function getTurnosDisponibles(): Promise<TurnosPorCancha | null> {
   const doc = await getGoogleSheet();
 
   // Accedemos por título para evitar depender del índice.
@@ -60,6 +60,8 @@ export async function getTurnosDisponibles(): Promise<TurnosPorCancha> {
 
   // Procesar turnos libres
   for (const row of libres) {
+    console.log("row", row.get("Fecha"));
+
     const fecha = row.get("Fecha");
     const turnoId = +row.get("Turno");
     const canchaId = +row.get("Cancha");
@@ -83,6 +85,10 @@ export async function getTurnosDisponibles(): Promise<TurnosPorCancha> {
   // Ordenamos cada lista por horaInicio
   for (const can of Object.keys(resultado)) {
     resultado[can].sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
+  }
+
+  if (Object.keys(resultado).length === 0) {
+    return null;
   }
   return resultado;
 }

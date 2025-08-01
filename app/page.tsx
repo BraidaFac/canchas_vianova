@@ -57,7 +57,8 @@ export default function TurnosPage() {
         cancha1: [],
         cancha2: [],
       };
-
+      console.log("allTurnos", allTurnos);
+      console.log("fechaFormateada", fechaFormateada);
       if (allTurnos[fechaFormateada]) {
         turnosFiltrados.cancha1 = allTurnos[fechaFormateada].filter(
           (turno) => turno.canchaId === 1
@@ -66,13 +67,11 @@ export default function TurnosPage() {
           (turno) => turno.canchaId === 2
         );
       }
+      console.log("turnosFiltrados", turnosFiltrados);
+
       setTurnosDisponibles(turnosFiltrados);
     } catch {
       setError("No se pudieron cargar los turnos. Intenta de nuevo más tarde.");
-      setTurnosDisponibles({
-        cancha1: [],
-        cancha2: [],
-      });
     } finally {
       setCargando(false);
     }
@@ -118,16 +117,17 @@ export default function TurnosPage() {
   };
 
   const obtenerAllTurnos = async () => {
-    try {
-      setCargando(true);
-      const turnos = await fetch("/api/turnos");
-      const allTurnos = await turnos.json();
-      setAllTurnos(allTurnos);
-    } catch {
+    setCargando(true);
+    const response = await fetch("/api/turnos");
+
+    if (!response.ok) {
       setError("No se pudieron cargar los turnos. Intenta de nuevo más tarde.");
-    } finally {
       setCargando(false);
+      return;
     }
+    const allTurnos = await response.json();
+    setAllTurnos(allTurnos);
+    setCargando(false);
   };
 
   useEffect(() => {
@@ -137,7 +137,6 @@ export default function TurnosPage() {
     setHoy(startOfToday());
     setMounted(true);
     obtenerAllTurnos();
-    console.log("efecto");
   }, []);
 
   useEffect(() => {
@@ -183,70 +182,119 @@ export default function TurnosPage() {
 
       <main className="flex-1 p-4">
         <div className="mx-auto max-w-md space-y-6">
-          <div className="rounded-lg border bg-card p-4 shadow-sm">
-            <div className="w-full flex justify-center">
-              <div className="flex items-center gap-x-4">
-                <h2 className="text-lg font-medium">Selecciona un día</h2>
-                <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+          {error ? (
+            <div className="rounded-lg border bg-card p-6 shadow-sm">
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-8 h-8 text-orange-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-white mb-2">
+                    ¡Ups! Tenemos un problema técnico
+                  </h2>
+                  <p className="text-gray-600 mb-4">
+                    No pudimos cargar los turnos disponibles en este momento.
+                    Para obtener información actualizada sobre los horarios
+                    libres, te recomendamos contactar directamente a las
+                    canchas.
+                  </p>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 className="font-medium text-green-800 mb-2">
+                      📱 Contacta por WhatsApp
+                    </h3>
+                    <p className="text-green-700 text-sm">
+                      Envía un mensaje a las canchas para consultar los turnos
+                      disponibles y realizar tu reserva de forma directa.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="mt-4 flex items-center">
-              {hoy && (
-                <Calendar
-                  mode="single"
-                  selected={fecha}
-                  locale={es}
-                  onSelect={seleccionarFecha}
-                  disabled={(date) => isBefore(date, hoy)}
-                  className="mx-auto"
-                  classNames={{
-                    day_selected:
-                      "text-primary-foreground  hover:text-primary-foreground  focus:text-primary-foreground",
-                    day_today:
-                      "bg-accent text-accent-foreground text-destructive",
-                    day: cn(
-                      "hover:bg-gray-100 hover:text-primary-foreground",
-                      "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
-                    ),
-                    day_disabled: "text-muted-foreground opacity-50",
-                    nav_button:
-                      "h-7 w-7 bg-transparent p-0 opacity-70 hover:opacity-100",
-                    nav_button_previous: "absolute left-1",
-                    nav_button_next: "absolute right-1",
-                    caption: "flex justify-center py-2 relative items-center",
-                    caption_label: "text-sm font-medium",
-                    cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                  }}
-                  components={{
-                    IconLeft: () => <ChevronLeft className="h-4 w-4" />,
-                    IconRight: () => <ChevronRight className="h-4 w-4" />,
-                  }}
-                />
-              )}
-            </div>
-          </div>
+          ) : (
+            <>
+              <div className="rounded-lg border bg-card p-4 shadow-sm">
+                <div className="w-full flex justify-center">
+                  <div className="flex items-center gap-x-4">
+                    <h2 className="text-lg font-medium">Selecciona un día</h2>
+                    <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center">
+                  {hoy && (
+                    <Calendar
+                      mode="single"
+                      selected={fecha}
+                      locale={es}
+                      onSelect={seleccionarFecha}
+                      disabled={(date) => isBefore(date, hoy)}
+                      className="mx-auto"
+                      classNames={{
+                        day_selected:
+                          "text-primary-foreground  hover:text-primary-foreground  focus:text-primary-foreground",
+                        day_today:
+                          "bg-accent text-accent-foreground text-destructive",
+                        day: cn(
+                          "hover:bg-gray-100 hover:text-primary-foreground",
+                          "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
+                        ),
+                        day_disabled: "text-muted-foreground opacity-50",
+                        nav_button:
+                          "h-7 w-7 bg-transparent p-0 opacity-70 hover:opacity-100",
+                        nav_button_previous: "absolute left-1",
+                        nav_button_next: "absolute right-1",
+                        caption:
+                          "flex justify-center py-2 relative items-center",
+                        caption_label: "text-sm font-medium",
+                        cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                      }}
+                      components={{
+                        IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+                        IconRight: () => <ChevronRight className="h-4 w-4" />,
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
 
-          <div className="rounded-lg border bg-card p-4 shadow-sm">
-            <h2 className="text-lg font-medium">Instrucciones</h2>
-            <ul className="mt-2 space-y-2 text-sm">
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 h-2 w-2 rounded-full bg-green-600" />
-                <span>Selecciona un día para ver los turnos disponibles</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 h-2 w-2 rounded-full bg-green-600" />
-                <span>Los días pasados aparecen deshabilitados</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 h-2 w-2 rounded-full bg-green-600" />
-                <span>Verás los horarios disponibles para cada cancha</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="mt-0.5 h-2 w-2 rounded-full bg-green-600" />
-                <span>Los turnos después de 15 días no están disponibles</span>
-              </li>
-            </ul>
-          </div>
+              <div className="rounded-lg border bg-card p-4 shadow-sm">
+                <h2 className="text-lg font-medium">Instrucciones</h2>
+                <ul className="mt-2 space-y-2 text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 h-2 w-2 rounded-full bg-green-600" />
+                    <span>
+                      Selecciona un día para ver los turnos disponibles
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 h-2 w-2 rounded-full bg-green-600" />
+                    <span>Los días pasados aparecen deshabilitados</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 h-2 w-2 rounded-full bg-green-600" />
+                    <span>Verás los horarios disponibles para cada cancha</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5 h-2 w-2 rounded-full bg-green-600" />
+                    <span>
+                      Los turnos después de 15 días no están disponibles
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </>
+          )}
         </div>
       </main>
 
