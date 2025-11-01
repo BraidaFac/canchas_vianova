@@ -429,7 +429,7 @@ export default function TurnosPage() {
                 {turnosDisponibles.map((cancha) => (
                   <div
                     key={cancha.id}
-                    className="w-full flex flex-col items-center justify-center"
+                    className="w-full flex flex-col items-center justify-start h-full"
                   >
                     <h3 className="text-center w-full text-xl text-gray-200 font-medium mb-2">
                       {cancha.nombre}
