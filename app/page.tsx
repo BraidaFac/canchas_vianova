@@ -374,15 +374,26 @@ export default function TurnosPage() {
 
       <Dialog open={dialogoAbierto} onOpenChange={setDialogoAbierto}>
         <DialogContent
-          className={`sm:max-w-md ${dialogoReservaAbierto ? "blur-sm" : ""}`}
+          className={`sm:max-w-md p-0 ${
+            dialogoReservaAbierto ? "blur-sm" : ""
+          }`}
         >
           <DialogHeader className="mt-4">
             <DialogTitle className="text-center">
-              {fecha && mounted && !error && !warning && "Turnos disponibles: "}
+              {fecha && mounted && !error && !warning && (
+                <span
+                  className={`text-xl ${
+                    tipoFutbol === 1 ? "text-green-600" : "text-blue-600"
+                  }`}
+                >
+                  Turnos disponibles:{" "}
+                </span>
+              )}
 
               {fecha && mounted && !error && !warning && (
                 <>
-                  <span className="capitalize ">
+                  <br />
+                  <span className="capitalize">
                     {capitalizeFirst(
                       format(fecha, "EEEE d 'de' MMMM", { locale: es })
                     )}
@@ -396,7 +407,7 @@ export default function TurnosPage() {
           </DialogHeader>
 
           {cargando ? (
-            <div className="flex h-[300px] items-center justify-center">
+            <div className="flex  items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               <span className="ml-2">Cargando turnos...</span>
             </div>
@@ -412,12 +423,12 @@ export default function TurnosPage() {
           ) : (
             fecha && (
               <div
-                className={`grid  gap-4 pt-4 ${
-                  tipoFutbol === 1 ? "grid-cols-3" : "grid-cols-2"
+                className={`grid pt-4 px-1 ${
+                  tipoFutbol === 1 ? "grid-cols-3 gap-1" : "grid-cols-2 gap-4"
                 }`}
               >
                 {turnosDisponibles.map((cancha) => (
-                  <div key={cancha.id} className="space-y-3">
+                  <div key={cancha.id} className="w-full">
                     <h3 className="text-center font-medium">{cancha.nombre}</h3>
                     <Separator />
                     <ScrollArea>
@@ -426,7 +437,7 @@ export default function TurnosPage() {
                         cancha.turnosDisponibles?.map((turno) => (
                           <div
                             key={`${cancha.id}-${turno.id}`}
-                            className="space-y-2 px-1 "
+                            className="px-1 w-11/12 mx-auto"
                           >
                             <Button
                               onClick={() =>
@@ -437,7 +448,11 @@ export default function TurnosPage() {
                                   cancha.nombre
                                 )
                               }
-                              className="w-full my-1 text-center text-green-700 hover:bg-green-50"
+                              className={` w-11/12 sm:w-full mx-auto my-1 text-center  ${
+                                tipoFutbol === 1
+                                  ? "text-green-700 hover:bg-green-50"
+                                  : "text-blue-700 hover:bg-blue-50"
+                              }`}
                             >
                               {turno.horaInicio} - {turno.horaFin}
                             </Button>
