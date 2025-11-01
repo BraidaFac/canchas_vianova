@@ -158,3 +158,18 @@
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
+
+/* Animación de rebote suave para el botón de WhatsApp */
+@keyframes bounce-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
+}

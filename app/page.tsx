@@ -1,7 +1,20 @@
 "use client";
-import { addDays, format, isAfter, isBefore, startOfToday } from "date-fns";
+import {
+  addDays,
+  format,
+  isAfter,
+  isBefore,
+  startOfDay,
+  startOfToday,
+} from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -10,71 +23,73 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import WelcomeScreen from "@/components/WelcomeScreen";
-import { Turno } from "@/lib/turnos";
+import { TurnosCanchas } from "@/lib/turnos";
 import { cn } from "@/lib/utils";
 
 // Tipo para los turnos disponibles
-type TurnosDisponibles = Record<string, Turno[]>;
 
+// Función helper para capitalizar la primera letra
+const capitalizeFirst = (text: string): string => {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
+const mapCanchas = {
+  1: [3, 4, 5], // Fútbol 5
+  2: [1, 2], // Fútbol 7
+};
+const numeroWhatsApp = "+5493482678377";
 export default function TurnosPage() {
   const [mostrarBienvenida, setMostrarBienvenida] = useState(true);
+  const [tipoFutbol, setTipoFutbol] = useState<1 | 2 | null>(null);
   const [fecha, setFecha] = useState<Date | undefined>(undefined);
+
   const [dialogoAbierto, setDialogoAbierto] = useState(false);
-  const [turnosDisponibles, setTurnosDisponibles] = useState<TurnosDisponibles>(
-    {
-      "1": [],
-      "2": [],
-      "3": [],
-      "4": [],
-      "5": [],
-    }
-  );
+  const [turnosDisponibles, setTurnosDisponibles] = useState<TurnosCanchas>([]);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
   const [hoy, setHoy] = useState<Date | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [allTurnos, setAllTurnos] = useState<Record<string, Turno[]>>({});
+  const [allTurnos, setAllTurnos] = useState<TurnosCanchas>([]);
   const initializedRef = useRef(false);
+  const [dialogoReservaAbierto, setDialogoReservaAbierto] = useState(false);
+  const [nombre, setNombre] = useState<string>("");
+  const [turnoSeleccionado, setTurnoSeleccionado] = useState<{
+    dia: Date;
+    horaInicio: string;
+    horaFin: string;
+    cancha: string;
+  } | null>(null);
 
   const obtenerTurnosDisponibles = async (fecha: Date) => {
     if (!mounted) return;
     setCargando(true);
-    setError(null);
 
-    try {
-      // Formatear la fecha como DD/MM para filtrar
-      const fechaFormateada = format(fecha, "dd/MM");
+    if (!tipoFutbol) setError("Debes seleccionar un tipo de fútbol");
+    const canchasSegunTipoFutbol = mapCanchas[tipoFutbol!];
 
-      // Filtrar los turnos por fecha desde allTurnos
-      const turnosFiltrados: TurnosDisponibles = {
-        cancha1: [],
-        cancha2: [],
-      };
-      console.log("allTurnos", allTurnos);
-      console.log("fechaFormateada", fechaFormateada);
-      if (allTurnos[fechaFormateada]) {
-        turnosFiltrados.cancha1 = allTurnos[fechaFormateada].filter(
-          (turno) => turno.canchaId === 1
-        );
-        turnosFiltrados.cancha2 = allTurnos[fechaFormateada].filter(
-          (turno) => turno.canchaId === 2
-        );
-      }
-      console.log("turnosFiltrados", turnosFiltrados);
-
-      setTurnosDisponibles(turnosFiltrados);
-    } catch {
-      setError("No se pudieron cargar los turnos. Intenta de nuevo más tarde.");
-    } finally {
-      setCargando(false);
-    }
+    const fechaFormateada = format(fecha, "dd/MM");
+    const nuevosTurnos = allTurnos
+      .filter((cancha) => canchasSegunTipoFutbol.includes(cancha.id))
+      .map((cancha) => {
+        if (cancha.turnos[fechaFormateada]) {
+          return {
+            ...cancha,
+            turnosDisponibles: cancha.turnos[fechaFormateada],
+          };
+        }
+        return cancha;
+      });
+    setTurnosDisponibles(nuevosTurnos as TurnosCanchas);
+    setCargando(false);
   };
 
   const seleccionarFecha = (fechaSeleccionada: Date | undefined) => {
@@ -83,6 +98,7 @@ export default function TurnosPage() {
       return;
     }
 
+    fechaSeleccionada = startOfDay(fechaSeleccionada);
     // Verificar si la fecha está en el pasado
     if (isBefore(fechaSeleccionada, hoy)) {
       setError("No se pueden seleccionar fechas pasadas");
@@ -107,13 +123,39 @@ export default function TurnosPage() {
     // Actualizar estado y abrir diálogo
     setFecha(fechaSeleccionada);
     setDialogoAbierto(true);
-
     // Obtener turnos disponibles
     obtenerTurnosDisponibles(fechaSeleccionada);
   };
 
-  const handleIngresar = () => {
+  const handleIngresar = (tipo: 1 | 2) => {
+    setTipoFutbol(tipo);
     setMostrarBienvenida(false);
+  };
+
+  const handleSeleccionarTurno = (
+    dia: Date,
+    horaInicio: string,
+    horaFin: string,
+    cancha: string
+  ) => {
+    setTurnoSeleccionado({ dia, horaInicio, horaFin, cancha });
+    setDialogoReservaAbierto(true);
+  };
+
+  const handleEnviarWhatsApp = () => {
+    if (!turnoSeleccionado) return;
+
+    const fechaFormateada = capitalizeFirst(
+      format(turnoSeleccionado.dia, "EEEE d 'de' MMMM", {
+        locale: es,
+      })
+    );
+    const mensaje = `Quiero reservar el turno del ${fechaFormateada} de ${turnoSeleccionado.horaInicio} - ${turnoSeleccionado.horaFin} de la ${turnoSeleccionado.cancha}. Mi nombre es ${nombre}.`;
+    const mensajeCodificado = encodeURIComponent(mensaje);
+    window.open(
+      `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`,
+      "_blank"
+    );
   };
 
   const obtenerAllTurnos = async () => {
@@ -145,6 +187,13 @@ export default function TurnosPage() {
     }
   }, [dialogoAbierto]);
 
+  // Reset del tipo de fútbol al volver al welcome screen
+  useEffect(() => {
+    if (mostrarBienvenida) {
+      setTipoFutbol(null);
+    }
+  }, [mostrarBienvenida]);
+
   // Mostrar pantalla de bienvenida
   if (mostrarBienvenida) {
     return <WelcomeScreen onEnter={handleIngresar} />;
@@ -173,11 +222,36 @@ export default function TurnosPage() {
   return (
     <div
       className={`flex min-h-screen flex-col bg-background transition-all duration-300 ${
-        dialogoAbierto ? "blur-sm" : ""
+        dialogoAbierto || dialogoReservaAbierto ? "blur-sm" : ""
       }`}
     >
-      <header className="sticky top-0 z-10 flex h-16 items-center justify-center border-b bg-background px-4">
-        <h1 className="text-xl font-semibold">Turnos ViaNova</h1>
+      <header className="flex justify-center mt-2 z-10 h-16 border-b bg-background px-4  items-center">
+        <div className="absolute left-4 top-4">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setMostrarBienvenida(true)}
+            className="hover:bg-accent"
+          >
+            <ArrowLeft className="h-5 w-5 " />
+            <span className="hidden sm:inline">Volver</span>
+          </Button>
+        </div>
+        <h1 className="text-xl font-semibold text-center flex flex-col items-center justify-center w-full">
+          Turnos ViaNova{" "}
+          {tipoFutbol && (
+            <span
+              className={`
+              ${tipoFutbol === 1 ? "text-green-600" : "text-blue-600"}`}
+            >
+              {tipoFutbol === 1
+                ? "Fútbol 5 ⚽"
+                : tipoFutbol === 2
+                ? "Fútbol 7 ⚽"
+                : ""}
+            </span>
+          )}
+        </h1>
       </header>
 
       <main className="flex-1 p-4">
@@ -235,8 +309,8 @@ export default function TurnosPage() {
                   {hoy && (
                     <Calendar
                       mode="single"
-                      selected={fecha}
                       locale={es}
+                      selected={fecha}
                       onSelect={seleccionarFecha}
                       disabled={(date) => isBefore(date, hoy)}
                       className="mx-auto"
@@ -299,7 +373,9 @@ export default function TurnosPage() {
       </main>
 
       <Dialog open={dialogoAbierto} onOpenChange={setDialogoAbierto}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent
+          className={`sm:max-w-md ${dialogoReservaAbierto ? "blur-sm" : ""}`}
+        >
           <DialogHeader className="mt-4">
             <DialogTitle className="text-center">
               {fecha && mounted && !error && !warning && "Turnos disponibles: "}
@@ -307,7 +383,9 @@ export default function TurnosPage() {
               {fecha && mounted && !error && !warning && (
                 <>
                   <span className="capitalize ">
-                    {format(fecha, "EEEE d 'de' MMMM", { locale: es })}
+                    {capitalizeFirst(
+                      format(fecha, "EEEE d 'de' MMMM", { locale: es })
+                    )}
                   </span>
                 </>
               )}
@@ -332,58 +410,120 @@ export default function TurnosPage() {
               </AlertDescription>
             </Alert>
           ) : (
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <div className="space-y-3">
-                <h3 className="text-center font-medium">Cancha 1</h3>
-                <Separator />
-                <ScrollArea className="h-[300px]">
-                  <div className="space-y-2 px-1">
-                    {turnosDisponibles.cancha1 &&
-                    turnosDisponibles.cancha1.length > 0 ? (
-                      turnosDisponibles.cancha1.map((turno) => (
-                        <Button
-                          key={turno.id}
-                          className={`w-full text-center ${"text-green-700 hover:bg-green-50"}`}
-                        >
-                          {turno.horaInicio} - {turno.horaFin}
-                        </Button>
-                      ))
-                    ) : (
-                      <p className="text-center text-sm text-gray-500">
-                        No hay turnos para esta fecha
-                      </p>
-                    )}
+            fecha && (
+              <div
+                className={`grid  gap-4 pt-4 ${
+                  tipoFutbol === 1 ? "grid-cols-3" : "grid-cols-2"
+                }`}
+              >
+                {turnosDisponibles.map((cancha) => (
+                  <div key={cancha.id} className="space-y-3">
+                    <h3 className="text-center font-medium">{cancha.nombre}</h3>
+                    <Separator />
+                    <ScrollArea>
+                      {cancha?.turnosDisponibles &&
+                      cancha.turnosDisponibles.length > 0 ? (
+                        cancha.turnosDisponibles?.map((turno) => (
+                          <div
+                            key={`${cancha.id}-${turno.id}`}
+                            className="space-y-2 px-1 "
+                          >
+                            <Button
+                              onClick={() =>
+                                handleSeleccionarTurno(
+                                  fecha!,
+                                  turno.horaInicio,
+                                  turno.horaFin,
+                                  cancha.nombre
+                                )
+                              }
+                              className="w-full my-1 text-center text-green-700 hover:bg-green-50"
+                            >
+                              {turno.horaInicio} - {turno.horaFin}
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-center text-sm text-gray-500">
+                          No hay turnos para esta fecha
+                        </p>
+                      )}
+                    </ScrollArea>
                   </div>
-                </ScrollArea>
+                ))}
               </div>
-
-              <div className="space-y-3">
-                <h3 className="text-center font-medium">Cancha 2</h3>
-                <Separator />
-                <ScrollArea className="h-[300px]">
-                  <div className="space-y-2 px-1">
-                    {turnosDisponibles.cancha2 &&
-                    turnosDisponibles.cancha2.length > 0 ? (
-                      turnosDisponibles.cancha2.map((turno) => (
-                        <Button
-                          key={turno.id}
-                          className={`w-full text-center ${"text-green-700 hover:bg-green-50"}`}
-                        >
-                          {turno.horaInicio} - {turno.horaFin}
-                        </Button>
-                      ))
-                    ) : (
-                      <p className="text-center text-sm text-gray-500">
-                        No hay turnos para esta fecha
-                      </p>
-                    )}
-                  </div>
-                </ScrollArea>
-              </div>
-            </div>
+            )
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de Reserva */}
+      <Dialog
+        open={dialogoReservaAbierto}
+        onOpenChange={setDialogoReservaAbierto}
+      >
+        <DialogContent className="sm:max-w-md ">
+          <DialogHeader>
+            <DialogTitle>Confirmar Reserva</DialogTitle>
+            <DialogDescription>
+              {turnoSeleccionado && mounted && (
+                <div className="space-y-4">
+                  <div className="text-center space-y-2">
+                    <p className="text-base font-medium">
+                      {turnoSeleccionado.cancha}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {capitalizeFirst(
+                        format(turnoSeleccionado.dia, "EEEE d 'de' MMMM", {
+                          locale: es,
+                        })
+                      )}
+                    </p>
+                    <p className="text-lg font-semibold">
+                      {turnoSeleccionado.horaInicio} -{" "}
+                      {turnoSeleccionado.horaFin}
+                    </p>
+                  </div>
+                  <Input
+                    type="text"
+                    placeholder="Ingresa tu nombre"
+                    value={nombre}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setNombre(e.target.value)
+                    }
+                  />
+                  <Button
+                    onClick={handleEnviarWhatsApp}
+                    className="w-full"
+                    size="lg"
+                    disabled={!nombre.trim()}
+                  >
+                    📱 Contactar por WhatsApp
+                  </Button>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+      {/* Botón flotante de WhatsApp */}
+      <a
+        href={`https://wa.me/${numeroWhatsApp}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-2xl transition-all duration-300 transform hover:scale-110 animate-bounce-slow"
+        aria-label="Contactar por WhatsApp"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="w-8 h-8"
+        >
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+        </svg>
+      </a>
     </div>
   );
 }
