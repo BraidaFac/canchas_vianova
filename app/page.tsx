@@ -28,7 +28,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import WelcomeScreen from "@/components/WelcomeScreen";
 import { TurnosCanchas } from "@/lib/turnos";
@@ -374,11 +373,11 @@ export default function TurnosPage() {
 
       <Dialog open={dialogoAbierto} onOpenChange={setDialogoAbierto}>
         <DialogContent
-          className={`sm:max-w-md p-0 ${
+          className={`sm:max-w-md p-0 h-3/4 flex flex-col ${
             dialogoReservaAbierto ? "blur-sm" : ""
           }`}
         >
-          <DialogHeader className="mt-4">
+          <DialogHeader className="mt-4 mb-2">
             <DialogTitle className="text-center">
               {fecha && mounted && !error && !warning && (
                 <span
@@ -428,42 +427,45 @@ export default function TurnosPage() {
                 }`}
               >
                 {turnosDisponibles.map((cancha) => (
-                  <div key={cancha.id} className="w-full">
-                    <h3 className="text-center font-medium">{cancha.nombre}</h3>
-                    <Separator />
-                    <ScrollArea>
-                      {cancha?.turnosDisponibles &&
-                      cancha.turnosDisponibles.length > 0 ? (
-                        cancha.turnosDisponibles?.map((turno) => (
-                          <div
-                            key={`${cancha.id}-${turno.id}`}
-                            className="px-1 w-11/12 mx-auto"
+                  <div
+                    key={cancha.id}
+                    className="w-full flex flex-col items-center justify-center"
+                  >
+                    <h3 className="text-center w-full text-xl text-gray-200 font-medium mb-2">
+                      {cancha.nombre}
+                    </h3>
+                    <Separator className="w-full mb-2" />
+                    {cancha?.turnosDisponibles &&
+                    cancha.turnosDisponibles.length > 0 ? (
+                      cancha.turnosDisponibles?.map((turno) => (
+                        <div
+                          key={`${cancha.id}-${turno.id}`}
+                          className="px-1 w-full mx-auto"
+                        >
+                          <Button
+                            onClick={() =>
+                              handleSeleccionarTurno(
+                                fecha!,
+                                turno.horaInicio,
+                                turno.horaFin,
+                                cancha.nombre
+                              )
+                            }
+                            className={` w-full mx-auto my-1 text-center  ${
+                              tipoFutbol === 1
+                                ? "text-green-700 hover:bg-green-50"
+                                : "text-blue-700 hover:bg-blue-50"
+                            }`}
                           >
-                            <Button
-                              onClick={() =>
-                                handleSeleccionarTurno(
-                                  fecha!,
-                                  turno.horaInicio,
-                                  turno.horaFin,
-                                  cancha.nombre
-                                )
-                              }
-                              className={` w-11/12 sm:w-full mx-auto my-1 text-center  ${
-                                tipoFutbol === 1
-                                  ? "text-green-700 hover:bg-green-50"
-                                  : "text-blue-700 hover:bg-blue-50"
-                              }`}
-                            >
-                              {turno.horaInicio} - {turno.horaFin}
-                            </Button>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-center text-sm text-gray-500">
-                          No hay turnos para esta fecha
-                        </p>
-                      )}
-                    </ScrollArea>
+                            {turno.horaInicio} - {turno.horaFin}
+                          </Button>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-center text-sm text-gray-500">
+                        No hay turnos para esta fecha
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
