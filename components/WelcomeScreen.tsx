@@ -132,30 +132,40 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           />
         ))}
 
-      <div className="text-center space-y-8 z-10">
+      <article className="text-center space-y-8 z-10">
         {/* Logo de la empresa */}
-        <div className="mb-8 flex flex-col items-center justify-center">
+        <header className="mb-8 flex flex-col items-center justify-center">
           <div className="w-full h-full mx-auto mb-4 rounded-full flex items-center justify-center">
             <Image
               src="/blanco.png"
-              alt="ViaNova Logo"
+              alt="ViaNova Canchas de Fútbol Sintético - Logo del complejo deportivo en Reconquista, Santa Fe"
               width={500}
               height={500}
               className="w-full h-full object-contain"
+              priority
             />
           </div>
           <h1 className="md:text-8xl text-6xl font-bold text-white mb-2">
             Vía Nova
           </h1>
           <p className="md:text-3xl text-xl text-white">COMPLEJO DEPORTIVO</p>
-        </div>
+          {/* Contenido SEO adicional - visible pero sutil */}
+          <p className="text-gray-400 mt-4 max-w-2xl text-sm md:text-base hidden">
+            Canchas de fútbol 5 y fútbol 7 con césped de última generación en
+            Reconquista, Santa Fe.
+          </p>
+        </header>
 
         {/* Botones de selección */}
-        <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
+        <section
+          className="flex flex-col md:flex-row gap-6 items-center justify-center"
+          aria-label="Seleccionar tipo de cancha"
+        >
           {/* Botón Fútbol 5 */}
           <Button
             onClick={(e) => handleEnter(e, 1)}
             disabled={isLoading}
+            aria-label="Reservar cancha de Fútbol 5 en ViaNova"
             className={`
               relative overflow-hidden
               bg-gradient-to-r from-emerald-500 to-green-600
@@ -184,6 +194,7 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           <Button
             onClick={(e) => handleEnter(e, 2)}
             disabled={isLoading}
+            aria-label="Reservar cancha de Fútbol 7 en ViaNova"
             className={`
               relative overflow-hidden
               bg-gradient-to-r from-blue-500 to-indigo-600
@@ -207,14 +218,37 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
             <span className="relative z-10">⚽ Fútbol 7</span>
             <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000" />
           </Button>
-        </div>
+        </section>
 
         {isLoading && (
           <p className="text-white text-lg animate-pulse mt-4">
             Cargando canchas...
           </p>
         )}
-      </div>
+
+        {/* Información adicional para SEO */}
+        <footer className="mt-8 text-gray-500 text-xs md:text-sm max-w-3xl mx-auto space-y-2 hidden">
+          <p>
+            <strong className="text-gray-400">📍 Ubicación:</strong>{" "}
+            Reconquista, Santa Fe, Argentina
+          </p>
+          <p>
+            <strong className="text-gray-400">⏰ Horarios:</strong> Abierto
+            todos los días de 8:00 a 23:00
+          </p>
+          <p>
+            <strong className="text-gray-400">📱 Contacto:</strong> +54 9 3482
+            678377 (WhatsApp disponible)
+          </p>
+          <p className="pt-2">
+            Nuestras canchas de <strong>fútbol 5</strong> y{" "}
+            <strong>fútbol 7</strong> cuentan con césped sintético de última
+            generación, iluminación LED profesional y sistema de reservas online
+            las 24 horas. Ideal para partidos con amigos, torneos y eventos
+            deportivos en Reconquista.
+          </p>
+        </footer>
+      </article>
 
       <style jsx>{`
         @keyframes float {

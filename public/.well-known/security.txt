@@ -1,0 +1,4 @@
+Contact: mailto:info@vianova-reconquista.com.ar
+Preferred-Languages: es, en
+    Canonical: https://canchas-vianova.vercel.app/.well-known/security.txt
+
