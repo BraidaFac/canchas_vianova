@@ -30,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import WelcomeScreen from "@/components/WelcomeScreen";
+import { avisos } from "@/lib/avisos";
 import { TurnosCanchas } from "@/lib/turnos";
 import { cn } from "@/lib/utils";
 
@@ -49,7 +50,7 @@ export default function TurnosPage() {
   const [mostrarBienvenida, setMostrarBienvenida] = useState(true);
   const [tipoFutbol, setTipoFutbol] = useState<1 | 2 | null>(null);
   const [fecha, setFecha] = useState<Date | undefined>(undefined);
-
+  const [dialogoAviso, setdialogoAviso] = useState(false);
   const [dialogoAbierto, setDialogoAbierto] = useState(false);
   const [turnosDisponibles, setTurnosDisponibles] = useState<TurnosCanchas>([]);
   const [cargando, setCargando] = useState(false);
@@ -129,6 +130,12 @@ export default function TurnosPage() {
   const handleIngresar = (tipo: 1 | 2) => {
     setTipoFutbol(tipo);
     setMostrarBienvenida(false);
+    if (tipo === 1) {
+      setdialogoAviso(true);
+      setTimeout(() => {
+        setdialogoAviso(false);
+      }, 5000);
+    }
   };
 
   const handleSeleccionarTurno = (
@@ -221,7 +228,7 @@ export default function TurnosPage() {
   return (
     <div
       className={`flex min-h-screen flex-col bg-background transition-all duration-300 ${
-        dialogoAbierto || dialogoReservaAbierto ? "blur-sm" : ""
+        dialogoAbierto || dialogoReservaAbierto || dialogoAviso ? "blur-sm" : ""
       }`}
     >
       <header className="flex justify-center mt-2 z-10 h-16 border-b bg-background px-4  items-center">
@@ -482,7 +489,7 @@ export default function TurnosPage() {
         <DialogContent className="sm:max-w-md ">
           <DialogHeader>
             <DialogTitle>Confirmar Reserva</DialogTitle>
-            <DialogDescription>
+            <DialogContent>
               {turnoSeleccionado && mounted && (
                 <div className="space-y-4">
                   <div className="text-center space-y-2">
@@ -519,11 +526,24 @@ export default function TurnosPage() {
                   </Button>
                 </div>
               )}
-            </DialogDescription>
+            </DialogContent>
           </DialogHeader>
         </DialogContent>
       </Dialog>
 
+      <Dialog open={dialogoAviso} onOpenChange={setdialogoAviso}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl font-bold">
+              Aviso {avisos[0].titulo}
+            </DialogTitle>
+          </DialogHeader>
+          <DialogDescription className="text-center">
+            {avisos[0].descripcion}
+          </DialogDescription>
+          <Button onClick={() => setdialogoAviso(false)}>Entendido</Button>
+        </DialogContent>
+      </Dialog>
       {/* Botón flotante de WhatsApp */}
       <a
         href={`https://wa.me/${numeroWhatsApp}`}
