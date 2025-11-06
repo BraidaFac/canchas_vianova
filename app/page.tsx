@@ -348,30 +348,29 @@ export default function TurnosPage() {
                 </div>
               </div>
 
-              <div className="rounded-lg border bg-card p-4 shadow-sm">
-                <h2 className="text-lg font-medium">Instrucciones</h2>
-                <ul className="mt-2 space-y-2 text-sm">
-                  <li className="flex items-start gap-2">
-                    <span className="mt-0.5 h-2 w-2 rounded-full bg-green-600" />
-                    <span>
-                      Selecciona un día para ver los turnos disponibles
-                    </span>
+              <div className="rounded-lg border bg-card p-6 shadow-sm">
+                <p className="leading-relaxed mb-4 text-md text-green-700">
+                  Sigue estos 3 sencillos pasos para asegurar tu cancha:
+                </p>
+                <ol className="space-y-3 text-sm text-gray-200 list-decimal list-inside marker:text-green-700 marker:font-semibold">
+                  <li className="leading-relaxed">
+                    Toca el día deseado en el calendario para visualizar los
+                    horarios disponibles.
                   </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-0.5 h-2 w-2 rounded-full bg-green-600" />
-                    <span>Los días pasados aparecen deshabilitados</span>
+                  <li className="leading-relaxed">
+                    Selecciona el horario de tu preferencia, ingresa tu nombre y
+                    presiona el botón &quot;Contactar por Whatsapp&quot;.
                   </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-0.5 h-2 w-2 rounded-full bg-green-600" />
-                    <span>Verás los horarios disponibles para cada cancha</span>
+                  <li className="leading-relaxed">
+                    Serás redirigido automáticamente al chat de Vía Nova.
+                    Simplemente presiona &quot;Enviar&quot; para confirmar tu
+                    solicitud de reserva.
                   </li>
-                  <li className="flex items-start gap-2">
-                    <span className="mt-0.5 h-2 w-2 rounded-full bg-green-600" />
-                    <span>
-                      Los turnos después de 15 días no están disponibles
-                    </span>
-                  </li>
-                </ul>
+                </ol>
+                <p className="mt-4 text-sm text-gray-400 italic">
+                  La disponibilidad de turnos se muestra hasta con 15 días de
+                  anticipación.
+                </p>
               </div>
             </>
           )}
