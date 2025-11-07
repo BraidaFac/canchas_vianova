@@ -459,7 +459,7 @@ export default function TurnosPage() {
                             }
                             className={` w-full mx-auto my-1 text-center  ${
                               tipoFutbol === 1
-                                ? "text-green-700 hover:bg-green-50"
+                                ? "text-green-800 hover:bg-green-50"
                                 : "text-blue-700 hover:bg-blue-50"
                             }`}
                           >
