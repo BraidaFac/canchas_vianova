@@ -1,7 +1,7 @@
 {
   "name": "ViaNova - Canchas de Fútbol Sintético",
   "short_name": "ViaNova",
-  "description": "Reservá tu cancha de fútbol 5 y fútbol 7 en ViaNova, Reconquista, Santa Fe. Sistema de reservas online 24/7.",
+  "description": "Reservá tu cancha de fútbol 5 y fútbol 7 en ViaNova, Reconquista, Santa Fe.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
@@ -9,36 +9,57 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/blanco.png",
+      "src": "/verde.png",
       "sizes": "any",
       "type": "image/x-icon"
     },
     {
-      "src": "/blanco.png",
+      "src": "/verde.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/verde.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-maskable-192.png",
+      "src": "/verde.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon-maskable-512.png",
+      "src": "/verde.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
   ],
-  "categories": ["sports", "lifestyle"],
+  "categories": [
+    "sports",
+    "lifestyle",
+    "complejo deportivo",
+    "canchas de fútbol"
+  ],
+  "keywords": [
+    "deportes",
+    "dacci",
+    "eltenis",
+    "futbol",
+    "complejo deportivo",
+    "canchas de fútbol",
+    "cancha futbol 5 reconquista",
+    "cancha futbol 7 reconquista",
+    "canchas sinteticas reconquista",
+    "futbol reconquista santa fe",
+    "vianova reconquista",
+    "alquiler cancha futbol reconquista",
+    "canchas futbol santa fe",
+    "reservar cancha futbol reconquista"
+  ],
   "shortcuts": [
     {
       "name": "Reservar Fútbol 5",
@@ -52,12 +73,12 @@
       "short_name": "Fútbol 7",
       "description": "Reservar turno de fútbol 7",
       "url": "/?tipo=futbol7",
-      "icons": [{ "src": "/blanco.png", "sizes": "96x96" }]
+      "icons": [{ "src": "/verde.png", "sizes": "96x96" }]
     }
   ],
   "screenshots": [
     {
-      "src": "/screenshot-1.png",
+      "src": "/verde.png",
       "sizes": "540x720",
       "type": "image/png",
       "form_factor": "narrow"
