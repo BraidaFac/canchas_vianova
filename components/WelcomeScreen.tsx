@@ -243,9 +243,8 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           <p className="pt-2">
             Nuestras canchas de <strong>fútbol 5</strong> y{" "}
             <strong>fútbol 7</strong> cuentan con césped sintético de última
-            generación, iluminación LED profesional y sistema de reservas online
-            las 24 horas. Ideal para partidos con amigos, torneos y eventos
-            deportivos en Reconquista.
+            generación, iluminación LED profesional. Ideal para partidos con
+            amigos, torneos y eventos deportivos en Reconquista.
           </p>
         </footer>
       </article>

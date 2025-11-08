@@ -9,32 +9,32 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/verde.png",
+      "src": "/favicon.ico",
       "sizes": "any",
-      "type": "image/x-icon"
+      "type": "image/ico"
     },
     {
-      "src": "/verde.png",
+      "src": "/favicon.ico",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/ico",
       "purpose": "any"
     },
     {
-      "src": "/verde.png",
+      "src": "/favicon.ico",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/ico",
       "purpose": "any"
     },
     {
-      "src": "/verde.png",
+      "src": "/favicon.ico",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/ico",
       "purpose": "maskable"
     },
     {
-      "src": "/verde.png",
+      "src": "/favicon.ico",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/ico",
       "purpose": "maskable"
     }
   ],
@@ -66,21 +66,21 @@
       "short_name": "Fútbol 5",
       "description": "Reservar turno de fútbol 5",
       "url": "/?tipo=futbol5",
-      "icons": [{ "src": "/verde.png", "sizes": "96x96" }]
+      "icons": [{ "src": "/favicon.ico", "sizes": "96x96" }]
     },
     {
       "name": "Reservar Fútbol 7",
       "short_name": "Fútbol 7",
       "description": "Reservar turno de fútbol 7",
       "url": "/?tipo=futbol7",
-      "icons": [{ "src": "/verde.png", "sizes": "96x96" }]
+      "icons": [{ "src": "/favicon.ico", "sizes": "96x96" }]
     }
   ],
   "screenshots": [
     {
-      "src": "/verde.png",
+      "src": "/favicon.ico",
       "sizes": "540x720",
-      "type": "image/png",
+      "type": "image/ico",
       "form_factor": "narrow"
     }
   ],

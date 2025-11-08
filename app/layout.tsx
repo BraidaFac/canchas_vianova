@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 const siteName = "ViaNova - Canchas de Fútbol Sintético";
 const siteDescription =
-  "Reservá tu cancha de fútbol 5 y fútbol 7 en ViaNova, el mejor complejo de canchas de fútbol sintético en Reconquista, Santa Fe. Sistema de reservas online 24/7. Canchas de césped sintético de última generación.";
+  "Reservá tu cancha de fútbol 5 y fútbol 7 en ViaNova, el mejor complejo de canchas de fútbol sintético en Reconquista, Santa Fe. Canchas de césped sintético de última generación.";
 const siteUrl = "https://canchas-vianova.vercel.app"; // Cambiar por tu dominio real
 const keywords =
   "cancha futbol 5 reconquista, cancha futbol 7 reconquista, canchas sinteticas reconquista, futbol reconquista santa fe, vianova reconquista, alquiler cancha futbol reconquista, canchas futbol santa fe, reservar cancha futbol reconquista";
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     description: siteDescription,
     images: [
       {
-        url: "/verde.png", // Asegúrate de crear esta imagen
+        url: "/favicon.ico", // Asegúrate de crear esta imagen
         width: 1200,
         height: 630,
         alt: "ViaNova - Canchas de Fútbol Sintético en Reconquista",
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteName,
     description: siteDescription,
-    images: ["/verde.png"],
+    images: ["/favicon.ico"],
   },
   robots: {
     index: true,
@@ -71,13 +71,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/verde.png", sizes: "any" },
-      { url: "/verde.png", sizes: "16x16", type: "image/png" },
-      { url: "/verde.png", sizes: "32x32", type: "image/png" },
-      { url: "/verde.png", sizes: "48x48", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.ico", sizes: "16x16", type: "image/png" },
+      { url: "/favicon.ico", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico", sizes: "48x48", type: "image/png" },
     ],
-    apple: [{ url: "/verde.png", sizes: "180x180", type: "image/png" }],
-    shortcut: [{ url: "/verde.png", sizes: "96x96", type: "image/png" }],
+    apple: [{ url: "/favicon.ico", sizes: "180x180", type: "image/png" }],
+    shortcut: [{ url: "/favicon.ico", sizes: "96x96", type: "image/png" }],
   },
   manifest: "/manifest.json",
   alternates: {
@@ -165,7 +165,7 @@ export default function RootLayout({
       },
     ],
     hasMap: `https://www.google.com/maps/search/?api=1&query=ViaNova+Canchas+Reconquista+Santa+Fe`,
-    image: `${siteUrl}/blanco.png`,
+    image: `${siteUrl}/favicon.ico`,
     sameAs: [
       // Agregar aquí las redes sociales cuando estén disponibles
       "https://www.instagram.com/vianova.complejo/",
