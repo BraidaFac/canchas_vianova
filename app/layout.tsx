@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     description: siteDescription,
     images: [
       {
-        url: "/blanco.png", // Asegúrate de crear esta imagen
+        url: "/verde.png", // Asegúrate de crear esta imagen
         width: 1200,
         height: 630,
         alt: "ViaNova - Canchas de Fútbol Sintético en Reconquista",
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteName,
     description: siteDescription,
-    images: ["/blanco.png"],
+    images: ["/verde.png"],
   },
   robots: {
     index: true,
@@ -71,13 +71,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/blanco.png", sizes: "any" },
-      { url: "/blanco.png", sizes: "16x16", type: "image/png" },
-      { url: "/blanco.png", sizes: "32x32", type: "image/png" },
-      { url: "/blanco.png", sizes: "48x48", type: "image/png" },
+      { url: "/verde.png", sizes: "any" },
+      { url: "/verde.png", sizes: "16x16", type: "image/png" },
+      { url: "/verde.png", sizes: "32x32", type: "image/png" },
+      { url: "/verde.png", sizes: "48x48", type: "image/png" },
     ],
-    apple: [{ url: "/blanco.png", sizes: "180x180", type: "image/png" }],
-    shortcut: "/blanco.png",
+    apple: [{ url: "/verde.png", sizes: "180x180", type: "image/png" }],
+    shortcut: [{ url: "/verde.png", sizes: "96x96", type: "image/png" }],
   },
   manifest: "/manifest.json",
   alternates: {
