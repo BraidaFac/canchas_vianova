@@ -11,6 +11,7 @@ import { es } from "date-fns/locale";
 import {
   ArrowLeft,
   CalendarIcon,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Loader2,
@@ -68,6 +69,8 @@ export default function TurnosPage() {
     horaFin: string;
     cancha: string;
   } | null>(null);
+  const [mostrarIndicadorScroll, setMostrarIndicadorScroll] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const obtenerTurnosDisponibles = async (fecha: Date) => {
     if (!mounted) return;
@@ -199,6 +202,49 @@ export default function TurnosPage() {
       setTipoFutbol(null);
     }
   }, [mostrarBienvenida]);
+
+  useEffect(() => {
+    if (!dialogoAbierto || cargando || error || warning) {
+      setMostrarIndicadorScroll(false);
+      return;
+    }
+
+    const checkScroll = () => {
+      const container = scrollContainerRef.current;
+      // Verificar que el container exista cada vez que se llama checkScroll
+      if (!container) {
+        return;
+      }
+
+      const hasScroll = container.scrollHeight > container.clientHeight;
+      const scrollBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight;
+      const isAtBottom = scrollBottom < 5;
+      setMostrarIndicadorScroll(hasScroll && !isAtBottom);
+    };
+
+    // Corre varias veces para asegurar render completo
+    const timeouts = [
+      setTimeout(checkScroll, 50),
+      setTimeout(checkScroll, 150),
+      setTimeout(checkScroll, 300),
+      setTimeout(checkScroll, 600),
+    ];
+
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", checkScroll);
+    }
+    window.addEventListener("resize", checkScroll);
+
+    return () => {
+      timeouts.forEach(clearTimeout);
+      if (container) {
+        container.removeEventListener("scroll", checkScroll);
+      }
+      window.removeEventListener("resize", checkScroll);
+    };
+  }, [turnosDisponibles, dialogoAbierto, cargando, error, warning, fecha]);
 
   // Mostrar pantalla de bienvenida
   if (mostrarBienvenida) {
@@ -379,7 +425,7 @@ export default function TurnosPage() {
 
       <Dialog open={dialogoAbierto} onOpenChange={setDialogoAbierto}>
         <DialogContent
-          className={`sm:max-w-md p-0 h-3/4 flex flex-col ${
+          className={`sm:max-w-md p-0 self-start min-h-[3/4] flex flex-col max-h-[100vh] ${
             dialogoReservaAbierto ? "blur-sm" : ""
           }`}
         >
@@ -428,9 +474,14 @@ export default function TurnosPage() {
           ) : (
             fecha && (
               <div
-                className={`grid pt-4 px-1 ${
+                ref={scrollContainerRef}
+                className={`grid pt-4 px-1 h-min-content max-h-[60vh] overflow-y-auto scrollbar-hide ${
                   tipoFutbol === 1 ? "grid-cols-3 gap-1" : "grid-cols-2 gap-4"
                 }`}
+                style={{
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                }}
               >
                 {turnosDisponibles.map((cancha) => (
                   <div
@@ -476,6 +527,18 @@ export default function TurnosPage() {
                 ))}
               </div>
             )
+          )}
+
+          {/* Indicador de scroll */}
+          {mostrarIndicadorScroll && (
+            <div className="flex justify-center mt-2 pb-2">
+              <div className="flex flex-col items-center text-muted-foreground animate-bounce-gentle">
+                <ChevronDown className="h-6 w-6" />
+                <span className="text-xs font-medium">
+                  Desliza para ver más
+                </span>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>

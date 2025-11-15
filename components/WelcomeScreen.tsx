@@ -162,33 +162,51 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           aria-label="Seleccionar tipo de cancha"
         >
           {/* Botón Fútbol 5 */}
-          <Button
-            onClick={(e) => handleEnter(e, 1)}
-            disabled={isLoading}
-            aria-label="Reservar cancha de Fútbol 5 en ViaNova"
-            className={`
-              relative overflow-hidden
-              bg-gradient-to-r from-emerald-500 to-green-600
-              hover:from-emerald-600 hover:to-green-700
-              text-white font-bold
-              md:px-12 md:py-8 px-10 py-7
-              text-xl md:text-2xl
-              rounded-2xl
-              transition-all duration-300
-              transform hover:scale-110 hover:-rotate-2
-              shadow-2xl hover:shadow-emerald-500/50
-              border-4 border-white/20
-              ${isLoading ? "opacity-50" : ""}
-            `}
-            style={{
-              animation: !isLoading
-                ? "float 3s ease-in-out infinite, pulse-green 2s ease-in-out infinite"
-                : "",
-            }}
-          >
-            <span className="relative z-10">⚽ Fútbol 5</span>
-            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000" />
-          </Button>
+          <div className="flex flex-col items-center gap-3">
+            <Button
+              onClick={(e) => handleEnter(e, 1)}
+              disabled={true}
+              aria-label="Reservar cancha de Fútbol 5 en ViaNova"
+              className={`
+                relative overflow-hidden
+                bg-gradient-to-r from-gray-500/40 to-gray-600/40
+                text-white/60 font-bold
+                md:px-12 md:py-8 px-10 py-7
+                text-xl md:text-2xl
+                rounded-2xl
+                transition-all duration-300
+                shadow-2xl
+                border-4 border-white/10
+                opacity-50 cursor-not-allowed
+              `}
+            >
+              <span className="relative z-10">⚽ Fútbol 5</span>
+            </Button>
+            <div className="relative">
+              <div
+                className="relative overflow-hidden bg-gradient-to-r from-emerald-500/20 to-green-500/20 backdrop-blur-sm text-emerald-300 font-semibold px-6 py-2 rounded-lg text-sm md:text-base shadow-xl border border-emerald-400/30"
+                style={{
+                  animation:
+                    " 2s ease-in-out infinite, pulse-glow 2s ease-in-out infinite",
+                }}
+              >
+                <span className="relative z-10">🚧 Próximamente 🚧</span>
+                {/* Efecto shimmer/brillo que se desliza */}
+                <div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent transform -skew-x-12 translate-x-[-200%]"
+                  style={{
+                    animation: "shimmer 3s ease-in-out infinite",
+                  }}
+                />
+              </div>
+              <div
+                className="absolute inset-0 bg-emerald-500/20 rounded-lg blur-xl"
+                style={{
+                  animation: "pulse-spread 2s ease-in-out infinite",
+                }}
+              />
+            </div>
+          </div>
 
           {/* Botón Fútbol 7 */}
           <Button
@@ -281,6 +299,41 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           50% {
             box-shadow: 0 0 30px rgba(59, 130, 246, 0.8),
               0 0 60px rgba(59, 130, 246, 0.5);
+          }
+        }
+
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-200%) skewX(-12deg);
+          }
+          100% {
+            transform: translateX(200%) skewX(-12deg);
+          }
+        }
+
+        @keyframes pulse-glow {
+          0%,
+          100% {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4),
+              0 0 30px rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.3);
+          }
+          50% {
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.7),
+              0 0 50px rgba(16, 185, 129, 0.4);
+            border-color: rgba(16, 185, 129, 0.6);
+          }
+        }
+
+        @keyframes pulse-spread {
+          0%,
+          100% {
+            opacity: 0.2;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.4;
+            transform: scale(1.1);
           }
         }
       `}</style>
