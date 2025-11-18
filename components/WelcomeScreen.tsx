@@ -233,7 +233,7 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
                 : "",
             }}
           >
-            <span className="relative z-10">⚽ Fútbol 7</span>
+            <span className="relative z-10">⚽ Fútbol 7/8</span>
             <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -skew-x-12 translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000" />
           </Button>
         </section>
