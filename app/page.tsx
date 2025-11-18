@@ -225,38 +225,32 @@ export default function TurnosPage() {
       // Consideramos que está al final si falta menos de 50px
       const isAtBottom = scrollBottom < 50;
 
-      console.log("Scroll Debug:", {
-        scrollHeight: container.scrollHeight,
-        scrollTop: container.scrollTop,
-        clientHeight: container.clientHeight,
-        scrollBottom: scrollBottom.toFixed(2),
-        isAtBottom,
-        hasScroll,
-        shouldShow: hasScroll && !isAtBottom,
-      });
-
       // Solo mostrar si hay scroll Y NO estamos al final (o cerca)
       setMostrarIndicadorScroll(hasScroll && !isAtBottom);
     };
 
-    // Corre varias veces para asegurar render completo
+    let containerElement: HTMLDivElement | null = null;
+
+    // Corre varias veces para asegurar render completo y agregar event listener
     const timeouts = [
-      setTimeout(checkScroll, 50),
+      setTimeout(() => {
+        checkScroll();
+        containerElement = scrollContainerRef.current;
+        if (containerElement) {
+          containerElement.addEventListener("scroll", checkScroll);
+        }
+      }, 50),
       setTimeout(checkScroll, 150),
       setTimeout(checkScroll, 300),
       setTimeout(checkScroll, 600),
     ];
 
-    const container = scrollContainerRef.current;
-    if (container) {
-      container.addEventListener("scroll", checkScroll);
-    }
     window.addEventListener("resize", checkScroll);
 
     return () => {
       timeouts.forEach(clearTimeout);
-      if (container) {
-        container.removeEventListener("scroll", checkScroll);
+      if (containerElement) {
+        containerElement.removeEventListener("scroll", checkScroll);
       }
       window.removeEventListener("resize", checkScroll);
     };
