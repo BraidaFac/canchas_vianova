@@ -217,9 +217,25 @@ export default function TurnosPage() {
       }
 
       const hasScroll = container.scrollHeight > container.clientHeight;
+
+      // Calculamos cuánto falta para llegar al final
       const scrollBottom =
         container.scrollHeight - container.scrollTop - container.clientHeight;
-      const isAtBottom = scrollBottom < 5;
+
+      // Consideramos que está al final si falta menos de 50px
+      const isAtBottom = scrollBottom < 50;
+
+      console.log("Scroll Debug:", {
+        scrollHeight: container.scrollHeight,
+        scrollTop: container.scrollTop,
+        clientHeight: container.clientHeight,
+        scrollBottom: scrollBottom.toFixed(2),
+        isAtBottom,
+        hasScroll,
+        shouldShow: hasScroll && !isAtBottom,
+      });
+
+      // Solo mostrar si hay scroll Y NO estamos al final (o cerca)
       setMostrarIndicadorScroll(hasScroll && !isAtBottom);
     };
 
@@ -299,7 +315,7 @@ export default function TurnosPage() {
               {tipoFutbol === 1
                 ? "Fútbol 5 ⚽"
                 : tipoFutbol === 2
-                ? "Fútbol 7 ⚽"
+                ? "Fútbol 7/8 ⚽"
                 : ""}
             </span>
           )}
