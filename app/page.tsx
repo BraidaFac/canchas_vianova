@@ -112,7 +112,7 @@ export default function TurnosPage() {
     const limiteFecha = addDays(hoy, 14);
     if (isAfter(fechaSeleccionada, limiteFecha)) {
       setWarning(
-        "No se pueden visualizar los turnos después de 15 días desde hoy"
+        "No se pueden visualizar los turnos después de 15 días desde hoy",
       );
       setFecha(fechaSeleccionada);
       setDialogoAbierto(true);
@@ -145,7 +145,7 @@ export default function TurnosPage() {
     dia: Date,
     horaInicio: string,
     horaFin: string,
-    cancha: string
+    cancha: string,
   ) => {
     setTurnoSeleccionado({ dia, horaInicio, horaFin, cancha });
     setDialogoReservaAbierto(true);
@@ -157,13 +157,13 @@ export default function TurnosPage() {
     const fechaFormateada = capitalizeFirst(
       format(turnoSeleccionado.dia, "EEEE d 'de' MMMM", {
         locale: es,
-      })
+      }),
     );
     const mensaje = `Quiero reservar el turno del ${fechaFormateada} de ${turnoSeleccionado.horaInicio} - ${turnoSeleccionado.horaFin} de la ${turnoSeleccionado.cancha}. Mi nombre es ${nombre}.`;
     const mensajeCodificado = encodeURIComponent(mensaje);
     window.open(
       `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`,
-      "_blank"
+      "_blank",
     );
   };
 
@@ -309,8 +309,8 @@ export default function TurnosPage() {
               {tipoFutbol === 1
                 ? "Fútbol 5 ⚽"
                 : tipoFutbol === 2
-                ? "Fútbol 7/8 ⚽"
-                : ""}
+                  ? "Fútbol 7/8 ⚽"
+                  : ""}
             </span>
           )}
         </h1>
@@ -383,7 +383,7 @@ export default function TurnosPage() {
                           "bg-accent text-accent-foreground text-destructive",
                         day: cn(
                           "hover:bg-gray-100 hover:text-primary-foreground",
-                          "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
+                          "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
                         ),
                         day_disabled: "text-muted-foreground opacity-50",
                         nav_button:
@@ -456,7 +456,7 @@ export default function TurnosPage() {
                   <br />
                   <span className="capitalize">
                     {capitalizeFirst(
-                      format(fecha, "EEEE d 'de' MMMM", { locale: es })
+                      format(fecha, "EEEE d 'de' MMMM", { locale: es }),
                     )}
                   </span>
                 </>
@@ -515,7 +515,7 @@ export default function TurnosPage() {
                                 fecha!,
                                 turno.horaInicio,
                                 turno.horaFin,
-                                cancha.nombre
+                                cancha.nombre,
                               )
                             }
                             className={` w-full mx-auto my-1 text-center  ${
@@ -572,7 +572,7 @@ export default function TurnosPage() {
                       {capitalizeFirst(
                         format(turnoSeleccionado.dia, "EEEE d 'de' MMMM", {
                           locale: es,
-                        })
+                        }),
                       )}
                     </p>
                     <p className="text-lg font-semibold">

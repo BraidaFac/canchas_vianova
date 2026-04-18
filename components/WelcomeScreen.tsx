@@ -85,7 +85,7 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
               opacity: particle.opacity - 0.008, // Desvanecimiento más rápido
               size: particle.size - 0.02, // Reducción más rápida del tamaño
             }))
-            .filter((particle) => particle.opacity > 0)
+            .filter((particle) => particle.opacity > 0),
         );
       }, 16); // 60 FPS para animación más fluida
 
@@ -95,7 +95,7 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
 
   const handleEnter = (
     event: React.MouseEvent<HTMLButtonElement>,
-    tipoFutbol: 1 | 2
+    tipoFutbol: 1 | 2,
   ) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = rect.left + rect.width / 2;
@@ -162,52 +162,32 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
           aria-label="Seleccionar tipo de cancha"
         >
           {/* Botón Fútbol 5 */}
-          <div className="flex flex-col items-center gap-3">
-            <Button
-              onClick={(e) => handleEnter(e, 1)}
-              disabled={true}
-              aria-label="Reservar cancha de Fútbol 5 en ViaNova"
-              className={`
-                relative overflow-hidden
-                bg-gradient-to-r from-gray-500/40 to-gray-600/40
-                text-white/60 font-bold
-                md:px-12 md:py-8 px-10 py-7
-                text-xl md:text-2xl
-                rounded-2xl
-                transition-all duration-300
-                shadow-2xl
-                border-4 border-white/10
-                opacity-50 cursor-not-allowed
-              `}
-            >
-              <span className="relative z-10">⚽ Fútbol 5</span>
-            </Button>
-            <div className="relative">
-              <div
-                className="relative overflow-hidden bg-gradient-to-r from-emerald-500/20 to-green-500/20 backdrop-blur-sm text-emerald-300 font-semibold px-6 py-2 rounded-lg text-sm md:text-base shadow-xl border border-emerald-400/30"
-                style={{
-                  animation:
-                    " 2s ease-in-out infinite, pulse-glow 2s ease-in-out infinite",
-                }}
-              >
-                <span className="relative z-10">🚧 Próximamente 🚧</span>
-                {/* Efecto shimmer/brillo que se desliza */}
-                <div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent transform -skew-x-12 translate-x-[-200%]"
-                  style={{
-                    animation: "shimmer 3s ease-in-out infinite",
-                  }}
-                />
-              </div>
-              <div
-                className="absolute inset-0 bg-emerald-500/20 rounded-lg blur-xl"
-                style={{
-                  animation: "pulse-spread 2s ease-in-out infinite",
-                }}
-              />
-            </div>
-          </div>
-
+          <Button
+            onClick={(e) => handleEnter(e, 1)}
+            disabled={isLoading}
+            aria-label="Reservar cancha de Fútbol 5 en ViaNova"
+            className={`
+              relative overflow-hidden
+              bg-gradient-to-r from-green-400 to-green-600
+              hover:from-green-400 hover:to-green-700
+              text-white font-bold
+              md:px-12 md:py-8 px-10 py-7
+              text-xl md:text-2xl
+              rounded-2xl
+              transition-all duration-300
+              transform hover:scale-110 hover:rotate-2
+              shadow-2xl hover:shadow-blue-500/50
+              border-4 border-white/20
+              ${isLoading ? "opacity-50" : ""}
+            `}
+            style={{
+              animation: !isLoading
+                ? "float 3s ease-in-out infinite 0.5s, pulse-blue 2s ease-in-out infinite"
+                : "",
+            }}
+          >
+            <span className="relative z-10">⚽ Fútbol 5</span>
+          </Button>
           {/* Botón Fútbol 7 */}
           <Button
             onClick={(e) => handleEnter(e, 2)}
@@ -281,11 +261,13 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
         @keyframes pulse-green {
           0%,
           100% {
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5),
+            box-shadow:
+              0 0 20px rgba(16, 185, 129, 0.5),
               0 0 40px rgba(16, 185, 129, 0.3);
           }
           50% {
-            box-shadow: 0 0 30px rgba(16, 185, 129, 0.8),
+            box-shadow:
+              0 0 30px rgba(16, 185, 129, 0.8),
               0 0 60px rgba(16, 185, 129, 0.5);
           }
         }
@@ -293,11 +275,13 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
         @keyframes pulse-blue {
           0%,
           100% {
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5),
+            box-shadow:
+              0 0 20px rgba(59, 130, 246, 0.5),
               0 0 40px rgba(59, 130, 246, 0.3);
           }
           50% {
-            box-shadow: 0 0 30px rgba(59, 130, 246, 0.8),
+            box-shadow:
+              0 0 30px rgba(59, 130, 246, 0.8),
               0 0 60px rgba(59, 130, 246, 0.5);
           }
         }
@@ -314,12 +298,14 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
         @keyframes pulse-glow {
           0%,
           100% {
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4),
+            box-shadow:
+              0 0 15px rgba(16, 185, 129, 0.4),
               0 0 30px rgba(16, 185, 129, 0.2);
             border-color: rgba(16, 185, 129, 0.3);
           }
           50% {
-            box-shadow: 0 0 25px rgba(16, 185, 129, 0.7),
+            box-shadow:
+              0 0 25px rgba(16, 185, 129, 0.7),
               0 0 50px rgba(16, 185, 129, 0.4);
             border-color: rgba(16, 185, 129, 0.6);
           }
