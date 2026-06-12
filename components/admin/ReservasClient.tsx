@@ -100,7 +100,7 @@ export default function ReservasClient({
       <div className="px-4 py-3 border-b border-border bg-card">
         <h1 className="text-base font-semibold mb-3">Reservas</h1>
         <div className="flex flex-col sm:flex-row gap-2">
-          <div className="relative flex-1 max-w-xs">
+          <div className="relative flex-1 sm:max-w-xs">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Buscar por nombre, teléfono o ID..."

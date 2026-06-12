@@ -143,7 +143,7 @@ export default function ClientesClient({ clientes: initialClientes }: { clientes
             Nuevo cliente
           </Button>
         </div>
-        <div className="relative max-w-xs">
+        <div className="relative w-full sm:max-w-xs">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar por nombre o teléfono..."

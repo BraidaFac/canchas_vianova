@@ -159,7 +159,7 @@ export default function GrillaClient({
     <div className="flex flex-col flex-1 min-h-0">
 
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 px-4 py-2 border-b border-border bg-card sticky top-0 z-10">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 border-b border-border bg-card sticky top-0 z-10">
 
         {/* Vista A — navegación de fecha */}
         {vista === "A" && (

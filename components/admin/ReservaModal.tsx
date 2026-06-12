@@ -294,7 +294,7 @@ export default function ReservaModal({
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
         {isEdit ? (
           <>
             <DialogHeader>
@@ -304,7 +304,7 @@ export default function ReservaModal({
             </DialogHeader>
 
             {/* Non-editable info */}
-            <div className="grid grid-cols-2 gap-2 text-sm bg-muted/40 rounded-lg p-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm bg-muted/40 rounded-lg p-3">
               <div>
                 <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">Cancha</div>
                 <div className="font-medium">{canchaName}</div>
@@ -327,7 +327,7 @@ export default function ReservaModal({
             </div>
 
             <form onSubmit={handleEditSubmit} className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground block mb-1">Monto Total</label>
                   <Input
@@ -499,7 +499,7 @@ export default function ReservaModal({
               </div>
 
               {/* Slot section */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground block mb-1">Cancha</label>
                   <Select value={canchaId} onValueChange={setCanchaId}>
@@ -542,7 +542,7 @@ export default function ReservaModal({
               </div>
 
               {/* Payment section */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground block mb-1">Monto Total</label>
                   <Input
