@@ -318,16 +318,16 @@ function BulkPrecioCard({
   return (
     <div className="rounded-lg border border-border bg-card px-4 py-3">
       <p className="text-sm font-medium mb-2">Actualizar todas las {label}</p>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Input
           type="number"
           placeholder="Nuevo precio"
           value={precio}
           onChange={(e) => setPrecio(e.target.value)}
-          className="h-8 text-sm"
+          className="h-8 text-sm flex-1 min-w-0"
           min={1}
         />
-        <Button size="sm" onClick={guardar} disabled={loading || !precio}>
+        <Button size="sm" onClick={guardar} disabled={loading || !precio} className="shrink-0">
           Aplicar
         </Button>
       </div>
@@ -385,14 +385,14 @@ function PrecioRow({
             F{cancha.tipo === "f8" ? "8" : "5"}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {editando ? (
             <>
               <Input
                 type="number"
                 value={precio}
                 onChange={(e) => setPrecio(e.target.value)}
-                className="h-8 w-28 text-sm"
+                className="h-8 w-24 text-sm"
                 min={1}
               />
               <Button size="sm" onClick={guardar} disabled={loading}>
@@ -510,14 +510,14 @@ function TurnosTab({
       {/* Agregar turno */}
       <div className="rounded-lg border border-border bg-card px-4 py-3">
         <p className="text-sm font-medium mb-3">Agregar turno</p>
-        <div className="flex items-end gap-3">
+        <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1.5">
             <label className="text-xs text-muted-foreground">Hora inicio</label>
             <Input
               type="time"
               value={horaInicio}
               onChange={(e) => setHoraInicio(e.target.value)}
-              className="h-8 w-32 text-sm"
+              className="h-8 w-28 text-sm"
             />
           </div>
           <div className="space-y-1.5">
@@ -526,7 +526,7 @@ function TurnosTab({
               type="time"
               value={horaFin}
               onChange={(e) => setHoraFin(e.target.value)}
-              className="h-8 w-32 text-sm"
+              className="h-8 w-28 text-sm"
             />
           </div>
           <Button size="sm" onClick={agregar} disabled={loading}>

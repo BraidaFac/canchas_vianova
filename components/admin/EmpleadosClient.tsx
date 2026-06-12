@@ -122,8 +122,6 @@ export default function EmpleadosClient({
             Nuevo empleado
           </Button>
         </div>
-        {/* Spacer matches the filter row height in Clientes/Reservas */}
-        <div className="h-8" />
       </div>
 
       {/* Table */}
