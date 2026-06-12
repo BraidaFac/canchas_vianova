@@ -45,6 +45,11 @@
 }
 
 :root {
+  --brand-verde: #133D34;
+  --brand-crema: #C6B997;
+  --brand-blanco: #F8F6F1;
+  --brand-verde-oscuro: #0C2820;
+  --brand-texto: #1A1A1A;
   --logo: #133e34;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -53,10 +58,10 @@
   --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
+  --primary: oklch(0.27 0.075 165);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --secondary: oklch(0.95 0.02 165);
+  --secondary-foreground: oklch(0.27 0.075 165);
   --muted: oklch(0.967 0.001 286.375);
   --muted-foreground: oklch(0.552 0.016 285.938);
   --accent: oklch(0.967 0.001 286.375);

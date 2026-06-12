@@ -1,24 +1,32 @@
 import { RenderMounted } from "@/components/ui/ClientRender";
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { DM_Serif_Display, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const dmSerifDisplay = DM_Serif_Display({
+  variable: "--font-display",
   subsets: ["latin"],
+  weight: "400",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const dmSans = DM_Sans({
+  variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
-const siteName = "ViaNova - Canchas de Fútbol Sintético";
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+});
+
+const siteName = "Vía Nova Complejo Deportivo";
 const siteDescription =
-  "Reservá tu cancha de fútbol 5 y fútbol 7 en ViaNova, el mejor complejo de canchas de fútbol sintético en Reconquista, Santa Fe. Canchas de césped sintético de última generación.";
-const siteUrl = "https://canchas-vianova.vercel.app"; // Cambiar por tu dominio real
+  "Reservá tu cancha de fútbol 5 y fútbol 8 en Vía Nova Complejo Deportivo, el mejor complejo de canchas de fútbol sintético en Reconquista, Santa Fe. Canchas de césped sintético de última generación.";
+const siteUrl = "https://canchas-vianova.vercel.app";
 const keywords =
-  "cancha futbol 5 reconquista, cancha futbol 7 reconquista, canchas sinteticas reconquista, futbol reconquista santa fe, vianova reconquista, alquiler cancha futbol reconquista, canchas futbol santa fe, reservar cancha futbol reconquista";
+  "cancha futbol 5 reconquista, cancha futbol 8 reconquista, canchas sinteticas reconquista, futbol reconquista santa fe, vianova reconquista, alquiler cancha futbol reconquista, canchas futbol santa fe, reservar cancha futbol reconquista";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -28,9 +36,9 @@ export const metadata: Metadata = {
   },
   description: siteDescription,
   keywords: keywords,
-  authors: [{ name: "ViaNova Canchas" }],
-  creator: "ViaNova Canchas",
-  publisher: "ViaNova Canchas",
+  authors: [{ name: "Vía Nova Complejo Deportivo" }],
+  creator: "Vía Nova Complejo Deportivo",
+  publisher: "Vía Nova Complejo Deportivo",
   formatDetection: {
     telephone: true,
     email: true,
@@ -45,10 +53,10 @@ export const metadata: Metadata = {
     description: siteDescription,
     images: [
       {
-        url: "/favicon.ico", // Asegúrate de crear esta imagen
+        url: "/favicon.ico",
         width: 1200,
         height: 630,
-        alt: "ViaNova - Canchas de Fútbol Sintético en Reconquista",
+        alt: "Vía Nova Complejo Deportivo - Canchas de Fútbol Sintético en Reconquista",
       },
     ],
   },
@@ -91,7 +99,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  themeColor: "#16a34a",
+  themeColor: "#133D34",
 };
 
 export default function RootLayout({
@@ -99,11 +107,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Structured Data para SEO
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "SportsActivityLocation",
-    name: "ViaNova - Canchas de Fútbol Sintético",
+    name: "Vía Nova Complejo Deportivo",
     alternateName: "Via Nova Canchas",
     description: siteDescription,
     url: siteUrl,
@@ -145,7 +152,7 @@ export default function RootLayout({
       },
       {
         "@type": "LocationFeatureSpecification",
-        name: "Cancha de Fútbol 7",
+        name: "Cancha de Fútbol 8",
         value: true,
       },
       {
@@ -167,7 +174,6 @@ export default function RootLayout({
     hasMap: `https://www.google.com/maps/search/?api=1&query=ViaNova+Canchas+Reconquista+Santa+Fe`,
     image: `${siteUrl}/favicon.ico`,
     sameAs: [
-      // Agregar aquí las redes sociales cuando estén disponibles
       "https://www.instagram.com/vianova.complejo/",
     ],
   };
@@ -182,7 +188,8 @@ export default function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
+        className={`${dmSerifDisplay.variable} ${dmSans.variable} ${jetbrainsMono.variable} antialiased`}
+        style={{ fontFamily: "var(--font-sans), sans-serif" }}
       >
         <RenderMounted>{children}</RenderMounted>
       </body>
