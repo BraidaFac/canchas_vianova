@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { Search, Plus, Pencil, Trash2, X } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, X, MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type Cliente = {
   id: string;
@@ -189,29 +195,39 @@ export default function ClientesClient({ clientes: initialClientes }: { clientes
                     )}
                   </td>
                   <td className="px-3 py-2.5">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                        onClick={() => openEdit(c)}
-                        title="Editar"
-                      >
+                    {/* Desktop */}
+                    <div className="hidden sm:flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={() => openEdit(c)} title="Editar">
                         <Pencil size={12} />
                       </Button>
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        className={
-                          deletingId === c.id
-                            ? "h-6 w-6 text-destructive bg-destructive/10"
-                            : "h-6 w-6 text-muted-foreground hover:text-destructive"
-                        }
+                        variant="ghost" size="icon"
+                        className={deletingId === c.id ? "h-6 w-6 text-destructive bg-destructive/10" : "h-6 w-6 text-muted-foreground hover:text-destructive"}
                         onClick={() => handleDelete(c.id)}
                         title={deletingId === c.id ? "¿Confirmar?" : "Eliminar"}
                       >
                         {deletingId === c.id ? <X size={12} /> : <Trash2 size={12} />}
                       </Button>
+                    </div>
+                    {/* Mobile */}
+                    <div className="flex sm:hidden items-center justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical size={13} /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openEdit(c)}>
+                            <Pencil size={13} className="mr-2" />Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className={deletingId === c.id ? "text-destructive focus:text-destructive bg-destructive/10" : "text-destructive focus:text-destructive"}
+                            onClick={() => handleDelete(c.id)}
+                          >
+                            {deletingId === c.id ? <X size={13} className="mr-2" /> : <Trash2 size={13} className="mr-2" />}
+                            {deletingId === c.id ? "¿Confirmar?" : "Eliminar"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </td>
                 </tr>

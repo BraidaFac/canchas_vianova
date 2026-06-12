@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Pencil, UserX, UserCheck } from "lucide-react";
+import { Plus, Pencil, UserX, UserCheck, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -178,29 +184,41 @@ export default function EmpleadosClient({
                     </span>
                   </td>
                   <td className="px-3 py-2.5">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                        onClick={() => abrirEditar(emp)}
-                        title="Editar"
-                      >
+                    {/* Desktop */}
+                    <div className="hidden sm:flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={() => abrirEditar(emp)} title="Editar">
                         <Pencil size={12} />
                       </Button>
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn(
-                          "h-6 w-6 text-muted-foreground",
-                          emp.activo ? "hover:text-destructive" : "hover:text-green-600"
-                        )}
+                        variant="ghost" size="icon"
+                        className={cn("h-6 w-6 text-muted-foreground", emp.activo ? "hover:text-destructive" : "hover:text-green-600")}
                         onClick={() => toggleActivo(emp)}
                         disabled={emp.id === sessionId}
                         title={emp.activo ? "Desactivar" : "Activar"}
                       >
                         {emp.activo ? <UserX size={12} /> : <UserCheck size={12} />}
                       </Button>
+                    </div>
+                    {/* Mobile */}
+                    <div className="flex sm:hidden items-center justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical size={13} /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => abrirEditar(emp)}>
+                            <Pencil size={13} className="mr-2" />Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={emp.id === sessionId}
+                            className={emp.activo ? "text-destructive focus:text-destructive" : "text-green-600 focus:text-green-600"}
+                            onClick={() => toggleActivo(emp)}
+                          >
+                            {emp.activo ? <UserX size={13} className="mr-2" /> : <UserCheck size={13} className="mr-2" />}
+                            {emp.activo ? "Desactivar" : "Activar"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </td>
                 </tr>

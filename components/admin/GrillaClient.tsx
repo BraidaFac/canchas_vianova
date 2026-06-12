@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { format, addDays, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, LayoutGrid, List, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutGrid, List, Plus, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,6 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -159,7 +165,7 @@ export default function GrillaClient({
     <div className="flex flex-col flex-1 min-h-0">
 
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 border-b border-border bg-card sticky top-0 z-10">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2 px-4 py-2 border-b border-border bg-card sticky top-0 z-10">
 
         {/* Vista A — navegación de fecha */}
         {vista === "A" && (
@@ -212,7 +218,30 @@ export default function GrillaClient({
         )}
 
         {/* Toggle vistas + Nueva Reserva */}
-        <div className="flex items-center gap-1.5">
+        {/* Mobile: Nueva + dropdown para vistas */}
+        <div className="flex sm:hidden items-center gap-1.5">
+          <Button variant="default" size="sm" className="gap-1.5 h-8 px-3" onClick={() => setModalCreate({})}>
+            <Plus size={13} />
+            <span className="text-xs">Nueva</span>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-8 w-8">
+                <MoreVertical size={14} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setVista("A")} className={cn(vista === "A" && "bg-accent")}>
+                <LayoutGrid size={14} className="mr-2" />Grilla
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setVista("3")} className={cn(vista === "3" && "bg-accent")}>
+                <List size={14} className="mr-2" />Lista
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        {/* Desktop: botones completos */}
+        <div className="hidden sm:flex items-center gap-1.5">
           <Button
             variant="default"
             size="sm"
@@ -220,7 +249,7 @@ export default function GrillaClient({
             onClick={() => setModalCreate({})}
           >
             <Plus size={13} />
-            <span className="hidden sm:inline text-xs">Nueva</span>
+            <span className="text-xs">Nueva</span>
           </Button>
           <Button
             variant={vista === "A" ? "default" : "outline"}
@@ -229,7 +258,7 @@ export default function GrillaClient({
             onClick={() => setVista("A")}
           >
             <LayoutGrid size={13} />
-            <span className="hidden sm:inline text-xs">Grilla</span>
+            <span className="text-xs">Grilla</span>
           </Button>
           <Button
             variant={vista === "3" ? "default" : "outline"}
@@ -238,7 +267,7 @@ export default function GrillaClient({
             onClick={() => setVista("3")}
           >
             <List size={13} />
-            <span className="hidden sm:inline text-xs">Lista</span>
+            <span className="text-xs">Lista</span>
           </Button>
         </div>
       </div>
@@ -247,11 +276,11 @@ export default function GrillaClient({
       {vista === "A" && (
         <div className="flex-1 overflow-auto">
           <table className="w-full text-xs border-collapse min-w-[600px]">
-            <thead className="sticky top-0 bg-card z-10">
+            <thead className="sticky top-0 bg-muted/60 z-10">
               <tr>
                 <th className="w-14 px-2 py-2 text-center text-muted-foreground font-medium border-b border-r border-border">Hora</th>
                 {canchas.map((c) => (
-                  <th key={c.id} className="px-2 py-2 text-center font-medium border-b border-r border-border last:border-r-0">
+                  <th key={c.id} className="px-2 py-2 text-center font-semibold text-foreground border-b border-r border-border last:border-r-0">
                     <div>{c.nombre}</div>
                     <div className="text-[10px] font-normal text-muted-foreground">F{c.jugadores === 8 ? "8" : "5"}</div>
                   </th>
@@ -313,9 +342,9 @@ export default function GrillaClient({
       {vista === "3" && (
         <div className="flex-1 overflow-auto">
           <table className="w-full text-xs border-collapse" style={{ minWidth: `${80 + diasAMostrar * 100}px` }}>
-            <thead className="sticky top-0 bg-card z-10">
+            <thead className="sticky top-0 bg-muted/60 z-10">
               <tr>
-                <th className="w-14 px-2 py-2 text-center text-muted-foreground font-medium border-b border-r border-border sticky left-0 bg-card z-20">
+                <th className="w-14 px-2 py-2 text-center text-muted-foreground font-medium border-b border-r border-border sticky left-0 bg-muted/60 z-20">
                   Hora
                 </th>
                 {diasCols.map((d) => (
