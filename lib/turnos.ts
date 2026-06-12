@@ -1,6 +1,5 @@
-import { getGoogleSheet } from "./google-sheets";
+import { createClient } from "@supabase/supabase-js";
 
-/** Estructura que devolvemos para cada turno */
 export interface Turno {
   horaInicio: string;
   horaFin: string;
@@ -20,90 +19,46 @@ export type FechaTurnos = Turno[];
 export type TurnosCanchas = Cancha[];
 
 export async function getTurnosDisponibles(): Promise<TurnosCanchas | null> {
-  const doc = await getGoogleSheet();
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
-  // Accedemos por título para evitar depender del índice.
-  const hojaLibres = doc.sheetsByTitle["Libres"];
-  const hojaTurnos = doc.sheetsByTitle["Turnos"];
-  const hojaCanchas = doc.sheetsByTitle["Canchas"];
+  const { data, error } = await supabase
+    .from("v_slots_disponibles")
+    .select("cancha_id, cancha_nombre, cancha_tipo, turno_id, hora_inicio, hora_fin, fecha");
 
-  // Cargamos headers y filas en paralelo.
-  await Promise.all([
-    hojaLibres.loadHeaderRow(),
-    hojaTurnos.loadHeaderRow(),
-    hojaCanchas.loadHeaderRow(),
-  ]);
+  if (error || !data) return null;
 
-  const [libres, turnos, canchas] = await Promise.all([
-    hojaLibres.getRows(),
-    hojaTurnos.getRows(),
-    hojaCanchas.getRows(),
-  ]);
+  const canchasMap = new Map<number, Cancha>();
 
-  /* ---------- Mapas de búsqueda rápida ---------- */
-
-  // idTurno -> {horaInicio, horaFin}
-  const turnosMap = new Map<number, { horaInicio: string; horaFin: string }>();
-  for (const row of turnos) {
-    turnosMap.set(+row.get("Id"), {
-      horaInicio: row.get("HoraInicio"),
-      horaFin: row.get("HoraFin"),
-    });
-  }
-
-  // idCancha -> {numero, jugadores}
-  const canchasMap = new Map<
-    number,
-    { numero: number; jugadores: number; nombre: string }
-  >();
-  for (const row of canchas) {
-    canchasMap.set(+row.get("Id"), {
-      numero: +row.get("NumeroCancha"),
-      jugadores: +row.get("CantJugadores"),
-      nombre: row.get("Nombre"),
-    });
-  }
-
-  /* ---------- Procesamos turnos libres ---------- */
-
-  const resultado: TurnosCanchas = [];
-
-  // Procesar turnos libres
-  for (const row of libres) {
-    const fecha = row.get("Fecha");
-    const turnoId = +row.get("Turno");
-    const canchaId = +row.get("Cancha");
-
-    // Buscar si la cancha ya existe en el array
-    let cancha = resultado.find((c) => c.id === canchaId);
-
-    if (!cancha) {
-      // Si no existe, crear nueva cancha y agregarla al array
-      cancha = {
-        id: canchaId,
-        nombre: canchasMap.get(canchaId)?.nombre || "",
-        jugadores: canchasMap.get(canchaId)?.jugadores || 0,
+  for (const row of data) {
+    if (!canchasMap.has(row.cancha_id)) {
+      canchasMap.set(row.cancha_id, {
+        id: row.cancha_id,
+        nombre: row.cancha_nombre,
+        jugadores: row.cancha_tipo === "f8" ? 8 : 5,
         turnos: {},
-      };
-      resultado.push(cancha);
+      });
     }
+
+    const cancha = canchasMap.get(row.cancha_id)!;
+
+    // View returns fecha as YYYY-MM-DD — page.tsx expects "dd/MM"
+    const [, month, day] = (row.fecha as string).split("-");
+    const fechaKey = `${day}/${month}`;
 
     const turno: Turno = {
-      horaInicio: turnosMap.get(turnoId)?.horaInicio || "",
-      horaFin: turnosMap.get(turnoId)?.horaFin || "",
-      id: turnoId,
+      id: row.turno_id,
+      horaInicio: (row.hora_inicio as string).slice(0, 5),
+      horaFin: (row.hora_fin as string).slice(0, 5),
     };
 
-    if (cancha.turnos[fecha]) {
-      cancha.turnos[fecha].push(turno);
-    } else {
-      cancha.turnos[fecha] = [turno];
+    if (!cancha.turnos[fechaKey]) {
+      cancha.turnos[fechaKey] = [];
     }
+    cancha.turnos[fechaKey].push(turno);
   }
 
-  /*  // Ordenamos cada lista por horaInicio
-  for (const can of Object.keys(resultado)) {
-    resultado[can as keyof TurnosCanchas].turnos.sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
-  } */
-  return resultado;
+  return Array.from(canchasMap.values());
 }
