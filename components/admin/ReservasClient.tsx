@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { Search, Plus, Pencil, X } from "lucide-react";
+import { Search, Plus, Pencil, X, MoreVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import ReservaModal from "./ReservaModal";
 
@@ -186,35 +192,45 @@ export default function ReservasClient({
                       <div className="text-muted-foreground/60">/{r.monto_total.toLocaleString("es-AR")}</div>
                     </td>
                     <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          title="Editar"
-                          onClick={() => setModalEdit(r)}
-                        >
+                      {/* Desktop */}
+                      <div className="hidden sm:flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-6 w-6" title="Editar" onClick={() => setModalEdit(r)}>
                           <Pencil size={11} />
                         </Button>
                         {r.estado !== "cancelada" && (
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-destructive hover:text-destructive"
-                            title="Cancelar"
+                            variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive" title="Cancelar"
                             onClick={async () => {
                               if (!confirm(`¿Cancelar la reserva ${r.id_legible}?`)) return;
-                              const res = await fetch(`/api/admin/reservas/${r.id}`, {
-                                method: "PATCH",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ estado: "cancelada" }),
-                              });
+                              const res = await fetch(`/api/admin/reservas/${r.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ estado: "cancelada" }) });
                               if (res.ok) router.refresh();
                             }}
                           >
                             <X size={11} />
                           </Button>
                         )}
+                      </div>
+                      {/* Mobile */}
+                      <div className="flex sm:hidden items-center justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical size={13} /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setModalEdit(r)}>
+                              <Pencil size={13} className="mr-2" />Editar
+                            </DropdownMenuItem>
+                            {r.estado !== "cancelada" && (
+                              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={async () => {
+                                if (!confirm(`¿Cancelar la reserva ${r.id_legible}?`)) return;
+                                const res = await fetch(`/api/admin/reservas/${r.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ estado: "cancelada" }) });
+                                if (res.ok) router.refresh();
+                              }}>
+                                <X size={13} className="mr-2" />Cancelar
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </td>
                   </tr>
