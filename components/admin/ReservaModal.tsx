@@ -380,7 +380,7 @@ export default function ReservaModal({
                   </p>
                 )}
                 <div className="flex gap-2 justify-between">
-                  {editEstado !== "cancelada" && editEstado !== "completada" && (
+                  {estado !== "cancelada" && estado !== "completada" && (
                     <Button
                       type="button"
                       variant="destructive"
