@@ -14,7 +14,7 @@ export default function AdminLayoutClient({
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-dvh overflow-hidden bg-background">
       <AdminSidebar session={session} collapsed={collapsed} onCollapsedChange={setCollapsed} />
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile spacer for fixed top bar (py-3 * 2 + h-7 + border = 53px) */}

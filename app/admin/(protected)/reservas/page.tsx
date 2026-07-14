@@ -24,7 +24,7 @@ export default async function ReservasPage({
   let query = supabase
     .from("reservas")
     .select(
-      "id, id_legible, fecha, estado, canal, monto_total, monto_abonado, created_at, cancha_id, turno_id, clientes(nombre, telefono), canchas(nombre, tipo), turnos(hora_inicio)"
+      "id, id_legible, fecha, estado, canal, monto_total, monto_abonado, created_at, cancha_id, turno_id, recurrente_id, clientes(nombre, telefono), canchas(nombre, tipo), turnos(hora_inicio)"
     )
     .order("fecha", { ascending: false })
     .order("created_at", { ascending: false })

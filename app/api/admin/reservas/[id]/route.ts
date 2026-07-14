@@ -27,11 +27,36 @@ export async function PATCH(
     .from("reservas")
     .update(update)
     .eq("id", id)
-    .select("id")
+    .select("id, recurrente_id")
     .single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  if (body.cancelar_recurrente && data.recurrente_id) {
+    const today = new Date().toISOString().slice(0, 10);
+
+    // Cancel all future reservas tied to this subscription (excluding the one already updated)
+    const { error: futureErr } = await supabase
+      .from("reservas")
+      .update({ estado: "cancelada" })
+      .eq("recurrente_id", data.recurrente_id)
+      .neq("id", id)
+      .gte("fecha", today)
+      .in("estado", ["pendiente_pago", "confirmada"]);
+    if (futureErr) {
+      return NextResponse.json({ error: futureErr.message }, { status: 400 });
+    }
+
+    // Deactivate the subscription itself
+    const { error: recErr } = await supabase
+      .from("reservas_recurrentes")
+      .update({ activa: false })
+      .eq("id", data.recurrente_id);
+    if (recErr) {
+      return NextResponse.json({ error: recErr.message }, { status: 400 });
+    }
   }
 
   return NextResponse.json({ id: data.id });

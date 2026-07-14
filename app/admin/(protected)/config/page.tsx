@@ -8,12 +8,15 @@ export default async function ConfigPage() {
   const session = await getSession();
   const supabase = await createSupabaseServerClient();
 
+  const esSuperAdmin = session?.rol === "superadmin";
+
   const [
     { data: canchas },
     { data: precios },
     { data: datosBancarios },
     { data: disponibilidad },
     { data: turnos },
+    { data: botConfig },
   ] = await Promise.all([
     supabase.from("canchas").select("id, espacio_id, nombre, tipo, jugadores, activa").order("id"),
     supabase
@@ -29,6 +32,9 @@ export default async function ConfigPage() {
       .select("cancha_id, dia_semana, habilitada")
       .order("cancha_id"),
     supabase.from("turnos").select("id, hora_inicio, hora_fin").order("hora_inicio"),
+    esSuperAdmin
+      ? supabase.from("bot_config").select("clave, valor, descripcion, updated_at").order("clave")
+      : Promise.resolve({ data: [] }),
   ]);
 
   return (
@@ -38,7 +44,8 @@ export default async function ConfigPage() {
       datosBancarios={datosBancarios ?? []}
       disponibilidad={disponibilidad ?? []}
       turnos={turnos ?? []}
-      esSuperAdmin={session?.rol === "superadmin"}
+      botConfig={botConfig ?? []}
+      esSuperAdmin={esSuperAdmin}
     />
   );
 }

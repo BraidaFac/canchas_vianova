@@ -144,9 +144,9 @@ export default function ClientesClient({ clientes: initialClientes }: { clientes
       <div className="px-4 py-3 border-b border-border bg-card sticky top-0 z-10">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-base font-semibold">Clientes</h1>
-          <Button size="sm" className="gap-1.5 h-8" onClick={openCreate}>
+          <Button size="sm" className="h-8" onClick={openCreate} title="Nuevo cliente">
             <Plus size={14} />
-            Nuevo cliente
+            <span className="hidden sm:inline">Nuevo cliente</span>
           </Button>
         </div>
         <div className="relative w-full sm:max-w-xs">

@@ -14,6 +14,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Contact,
+  Trophy,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ const navItems = [
   { href: "/admin/grilla", label: "Grilla", icon: CalendarDays },
   { href: "/admin/reservas", label: "Reservas", icon: List },
   { href: "/admin/clientes", label: "Clientes", icon: Contact },
+  { href: "/admin/eventos", label: "Eventos", icon: Trophy },
   { href: "/admin/empleados", label: "Empleados", icon: Users, superadminOnly: true },
   { href: "/admin/config", label: "Configuración", icon: Settings },
 ];
@@ -68,13 +70,15 @@ export default function AdminSidebar({ session, collapsed, onCollapsedChange }: 
         >
           {!collapsed && (
             <div className="min-w-0">
-              <Image
-                src="/blanco.png"
-                alt="Vía Nova"
-                width={96}
-                height={32}
-                className="h-8 w-auto object-contain mb-2"
-              />
+              <Link href="/admin/grilla">
+                <Image
+                  src="/blanco.png"
+                  alt="Vía Nova"
+                  width={96}
+                  height={32}
+                  className="h-8 w-auto object-contain mb-2"
+                />
+              </Link>
               <p className="text-xs text-[#C6B997] mt-0.5 truncate">{session.nombre}</p>
             </div>
           )}
@@ -130,13 +134,15 @@ export default function AdminSidebar({ session, collapsed, onCollapsedChange }: 
 
       {/* ── MOBILE: fixed top bar ── */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-[#0C2820] border-b border-white/10">
-        <Image
-          src="/blanco.png"
-          alt="Vía Nova"
-          width={80}
-          height={28}
-          className="h-7 w-auto object-contain"
-        />
+        <Link href="/admin/grilla">
+          <Image
+            src="/blanco.png"
+            alt="Vía Nova"
+            width={80}
+            height={28}
+            className="h-7 w-auto object-contain"
+          />
+        </Link>
         <Button
           variant="ghost"
           size="icon"
