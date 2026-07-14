@@ -25,7 +25,8 @@ export default function Footer() {
               className="h-10 w-auto object-contain"
             />
             <p className="text-white/50 text-sm leading-relaxed max-w-xs">
-              Complejo deportivo de césped sintético en Reconquista, Santa Fe. Tu cancha, tu momento.
+              Complejo deportivo de césped sintético en Reconquista, Santa Fe.
+              Tu cancha, tu momento.
             </p>
           </div>
 
@@ -55,7 +56,9 @@ export default function Footer() {
             </h3>
             <div className="space-y-2.5">
               <p className="text-white/60 text-sm">Reconquista, Santa Fe</p>
-              <p className="text-white/60 text-sm">Todos los días: 08:00 — 00:00</p>
+              <p className="text-white/60 text-sm">
+                Todos los días: 08:00 — 00:00
+              </p>
               <a
                 href="https://wa.me/5434826783770"
                 target="_blank"
@@ -80,7 +83,7 @@ export default function Footer() {
         {/* Divider + copyright */}
         <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-white/40 text-xs">
-            © 2025 Vía Nova Complejo Deportivo. Todos los derechos reservados.
+            © 2026 Vía Nova Complejo Deportivo. Todos los derechos reservados.
           </p>
           <a
             href={IG_LINK}

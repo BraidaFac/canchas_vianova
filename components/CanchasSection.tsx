@@ -2,8 +2,20 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
-import { Users, Lightbulb, ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useTransform,
+} from "framer-motion";
+import {
+  Users,
+  Lightbulb,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  ZoomIn,
+} from "lucide-react";
 
 // ─── REPLACE estas fotos con las reales del predio ────────────────────────────
 const CANCHAS_DATA = [
@@ -11,24 +23,20 @@ const CANCHAS_DATA = [
     tipo: "f8" as const,
     label: "Fútbol 8",
     detalle: "Canchas 1 y 2 · 16 jugadores · Iluminación LED",
-    cover: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=85",
+    cover:
+      "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=85",
     fotos: [
       "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=85",
-      "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=1200&q=85",
-      "https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=1200&q=85",
-      "https://images.unsplash.com/photo-1459865264687-595d652de67e?w=1200&q=85",
     ],
   },
   {
     tipo: "f5" as const,
     label: "Fútbol 5",
     detalle: "Canchas A, B y C · 10 jugadores · Iluminación LED",
-    cover: "https://images.unsplash.com/photo-1459865264687-595d652de67e?w=1200&q=85",
+    cover:
+      "https://images.unsplash.com/photo-1459865264687-595d652de67e?w=1200&q=85",
     fotos: [
       "https://images.unsplash.com/photo-1459865264687-595d652de67e?w=1200&q=85",
-      "https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=1200&q=85",
-      "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=1200&q=85",
-      "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=85",
     ],
   },
 ];
@@ -50,8 +58,14 @@ function Lightbox({
   const dragX = useMotionValue(0);
   const opacity = useTransform(dragX, [-200, 0, 200], [0.4, 1, 0.4]);
 
-  const prev = useCallback(() => setCurrent((i) => (i - 1 + fotos.length) % fotos.length), [fotos.length]);
-  const next = useCallback(() => setCurrent((i) => (i + 1) % fotos.length), [fotos.length]);
+  const prev = useCallback(
+    () => setCurrent((i) => (i - 1 + fotos.length) % fotos.length),
+    [fotos.length],
+  );
+  const next = useCallback(
+    () => setCurrent((i) => (i + 1) % fotos.length),
+    [fotos.length],
+  );
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -88,19 +102,29 @@ function Lightbox({
 
       {/* Counter */}
       <div className="absolute top-5 left-1/2 -translate-x-1/2 flex items-center gap-3">
-        <span className="text-[#C6B997] text-sm font-medium tracking-wide">{label}</span>
-        <span className="text-white/40 text-sm">{current + 1} / {fotos.length}</span>
+        <span className="text-[#C6B997] text-sm font-medium tracking-wide">
+          {label}
+        </span>
+        <span className="text-white/40 text-sm">
+          {current + 1} / {fotos.length}
+        </span>
       </div>
 
       {/* Arrows */}
       <button
-        onClick={(e) => { e.stopPropagation(); prev(); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          prev();
+        }}
         className="absolute left-4 sm:left-8 z-10 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
       >
         <ChevronLeft className="h-6 w-6 text-white" />
       </button>
       <button
-        onClick={(e) => { e.stopPropagation(); next(); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          next();
+        }}
         className="absolute right-4 sm:right-8 z-10 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
       >
         <ChevronRight className="h-6 w-6 text-white" />
@@ -137,7 +161,10 @@ function Lightbox({
         {fotos.map((_, i) => (
           <button
             key={i}
-            onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setCurrent(i);
+            }}
             className="rounded-full transition-all cursor-pointer"
             style={{
               width: i === current ? 20 : 8,
@@ -152,7 +179,7 @@ function Lightbox({
 }
 
 // ── Card ──────────────────────────────────────────────────────────────────────
-function CanchaCard({ cancha }: { cancha: typeof CANCHAS_DATA[0] }) {
+function CanchaCard({ cancha }: { cancha: (typeof CANCHAS_DATA)[0] }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [hoverProgress, setHoverProgress] = useState(0); // 0–1
   const hoverTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -176,7 +203,12 @@ function CanchaCard({ cancha }: { cancha: typeof CANCHAS_DATA[0] }) {
     setHoverProgress(0);
   };
 
-  useEffect(() => () => { if (hoverTimerRef.current) clearInterval(hoverTimerRef.current); }, []);
+  useEffect(
+    () => () => {
+      if (hoverTimerRef.current) clearInterval(hoverTimerRef.current);
+    },
+    [],
+  );
 
   // Arc circumference for SVG progress ring
   const R = 22;
@@ -205,18 +237,33 @@ function CanchaCard({ cancha }: { cancha: typeof CANCHAS_DATA[0] }) {
         />
 
         {/* Gradient overlay */}
-        <div className="absolute inset-0" style={{
-          background: "linear-gradient(to top, rgba(12,40,32,0.92) 0%, rgba(19,61,52,0.45) 50%, rgba(19,61,52,0.15) 100%)"
-        }} />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(12,40,32,0.92) 0%, rgba(19,61,52,0.45) 50%, rgba(19,61,52,0.15) 100%)",
+          }}
+        />
 
         {/* Top-right: progress ring + zoom icon */}
         <div className="absolute top-4 right-4 flex items-center justify-center">
           {hoverProgress > 0 ? (
             <svg width="52" height="52" className="-rotate-90">
-              <circle cx="26" cy="26" r={R} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
               <circle
-                cx="26" cy="26" r={R} fill="none"
-                stroke="#C6B997" strokeWidth="3"
+                cx="26"
+                cy="26"
+                r={R}
+                fill="none"
+                stroke="rgba(255,255,255,0.15)"
+                strokeWidth="3"
+              />
+              <circle
+                cx="26"
+                cy="26"
+                r={R}
+                fill="none"
+                stroke="#C6B997"
+                strokeWidth="3"
                 strokeDasharray={`${dash} ${CIRC}`}
                 strokeLinecap="round"
               />
@@ -237,13 +284,24 @@ function CanchaCard({ cancha }: { cancha: typeof CANCHAS_DATA[0] }) {
           {/* Thumbnail strip */}
           <div className="flex gap-2 mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             {cancha.fotos.slice(0, 4).map((foto, i) => (
-              <div key={i} className="relative w-12 h-9 rounded-lg overflow-hidden ring-1 ring-white/30 shrink-0">
-                <Image src={foto} alt="" fill unoptimized className="object-cover" />
+              <div
+                key={i}
+                className="relative w-12 h-9 rounded-lg overflow-hidden ring-1 ring-white/30 shrink-0"
+              >
+                <Image
+                  src={foto}
+                  alt=""
+                  fill
+                  unoptimized
+                  className="object-cover"
+                />
               </div>
             ))}
             {cancha.fotos.length > 4 && (
               <div className="w-12 h-9 rounded-lg bg-black/40 flex items-center justify-center ring-1 ring-white/20 shrink-0">
-                <span className="text-white/80 text-xs font-medium">+{cancha.fotos.length - 4}</span>
+                <span className="text-white/80 text-xs font-medium">
+                  +{cancha.fotos.length - 4}
+                </span>
               </div>
             )}
           </div>
@@ -272,7 +330,9 @@ function CanchaCard({ cancha }: { cancha: typeof CANCHAS_DATA[0] }) {
             className="mt-3 text-[#C6B997] text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1.5"
           >
             <span>Ver fotos</span>
-            <span className="text-[#C6B997]/60">· hacé click o mantené hover</span>
+            <span className="text-[#C6B997]/60">
+              · hacé click o mantené hover
+            </span>
           </motion.div>
         </div>
       </motion.div>
@@ -304,8 +364,8 @@ export default function CanchasSection() {
             Nuestras canchas
           </h2>
           <p className="text-[#1A1A1A]/60 max-w-lg mx-auto">
-            Césped sintético de alta gama con iluminación LED.
-            Hacé click en cualquier cancha para ver las fotos.
+            Césped sintético de alta gama con iluminación LED. Hacé click en
+            cualquier cancha para ver las fotos.
           </p>
         </div>
 

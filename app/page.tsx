@@ -6,7 +6,6 @@ import ServiciosSection from "@/components/ServiciosSection";
 import ComoReservarSection from "@/components/ComoReservarSection";
 import ContactoSection from "@/components/ContactoSection";
 import Footer from "@/components/Footer";
-import ChatBot from "@/components/ChatBot";
 
 export default function Page() {
   return (
@@ -19,7 +18,7 @@ export default function Page() {
       <ComoReservarSection />
       <ContactoSection />
       <Footer />
-      <ChatBot />
+      {/* <ChatBot /> */}
     </main>
   );
 }
