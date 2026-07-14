@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [telefono, setTelefono] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +21,7 @@ export default function LoginPage() {
     const res = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telefono, pin }),
+      body: JSON.stringify({ identifier, pin }),
     });
 
     const data = await res.json();
@@ -58,12 +58,14 @@ export default function LoginPage() {
         <div className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-2xl p-6 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-white/80">Teléfono</label>
+              <label className="text-sm font-medium text-white/80">
+                Usuario o teléfono
+              </label>
               <Input
-                type="tel"
-                placeholder="5491100000000"
-                value={telefono}
-                onChange={(e) => setTelefono(e.target.value)}
+                type="text"
+                placeholder="usuario o telefono"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
                 autoComplete="username"
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus-visible:ring-[#C6B997]"
