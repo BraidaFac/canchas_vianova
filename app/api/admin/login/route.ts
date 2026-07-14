@@ -4,9 +4,9 @@ import { signSession, getSessionCookieConfig } from "@/lib/auth";
 import { createHash } from "crypto";
 
 export async function POST(request: NextRequest) {
-  const { telefono, pin } = await request.json();
+  const { identifier, pin } = await request.json();
 
-  if (!telefono || !pin) {
+  if (!identifier || !pin) {
     return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
   }
 
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   const { data: admin, error } = await supabase
     .from("admins")
     .select("id, nombre, rol, telefono, activo")
-    .eq("telefono", telefono)
+    .or(`telefono.eq.${identifier},username.eq.${identifier}`)
     .eq("pin_hash", pinHash)
     .eq("activo", true)
     .single();
