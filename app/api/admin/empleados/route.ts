@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  const { nombre, telefono, pin, rol } = await request.json();
+  const { nombre, telefono, username, pin, rol } = await request.json();
 
   if (!nombre || !telefono || !pin) {
     return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
   const { error } = await supabase.from("admins").insert({
     nombre,
     telefono,
+    username: username || null,
     pin_hash: pinHash,
     rol: rol ?? "admin",
     activo: true,
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     if (error.code === "23505") {
-      return NextResponse.json({ error: "Teléfono ya registrado" }, { status: 409 });
+      return NextResponse.json({ error: "Teléfono o username ya registrado" }, { status: 409 });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
