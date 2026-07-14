@@ -71,6 +71,7 @@ export default async function GrillaPage({
     { data: preciosData },
     { data: dispSemanal },
     { data: dispOverrides },
+    { data: eventosActivos },
   ] = await Promise.all([
     supabase
       .from("canchas")
@@ -83,25 +84,25 @@ export default async function GrillaPage({
       .select("id, hora_inicio, hora_fin")
       .order("hora_inicio"),
 
-    // Vista A: solo la fecha seleccionada
+    // Vista A: solo la fecha seleccionada (canceladas incluidas para suprimir fijo en ese slot)
     supabase
       .from("reservas")
       .select("id, id_legible, estado, canal, cancha_id, turno_id, monto_total, monto_abonado, recurrente_id, fecha, clientes(nombre, telefono)")
       .eq("fecha", fecha)
-      .in("estado", ["pendiente_pago", "confirmada"]),
+      .in("estado", ["pendiente_pago", "confirmada", "cancelada"]),
 
-    // Vista Lista: próximos 15 días
+    // Vista Lista: próximos 15 días (canceladas incluidas para suprimir fijo)
     supabase
       .from("reservas")
       .select("id, id_legible, estado, canal, cancha_id, turno_id, monto_total, monto_abonado, recurrente_id, fecha, clientes(nombre, telefono)")
       .gte("fecha", today)
       .lte("fecha", endDate)
-      .in("estado", ["pendiente_pago", "confirmada"]),
+      .in("estado", ["pendiente_pago", "confirmada", "cancelada"]),
 
     // Todos los fijos activos
     supabase
       .from("reservas_recurrentes")
-      .select("id, cancha_id, turno_id, dia_semana, clientes(nombre, telefono)")
+      .select("id, cancha_id, turno_id, dia_semana, clientes(id, nombre, telefono)")
       .eq("activa", true),
 
     // Precios por cancha
@@ -121,6 +122,14 @@ export default async function GrillaPage({
       .from("disponibilidad_overrides")
       .select("cancha_id, habilitada")
       .eq("fecha", fecha),
+
+    // Eventos activos que se superponen con el rango visible
+    supabase
+      .from("eventos")
+      .select("id, nombre, tipo, fecha_inicio, fecha_fin, evento_slots(cancha_id, turno_id, dia_semana)")
+      .eq("estado", "activo")
+      .lte("fecha_inicio", endDate)
+      .gte("fecha_fin", today),
   ]);
 
   // Build map: most recent price per cancha
@@ -160,6 +169,8 @@ export default async function GrillaPage({
       todosLosFijos={(todosLosFijos ?? []) as any[]}
       vistaInicial={params.vista === "3" ? "3" : "A"}
       precios={precios}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      eventosActivos={(eventosActivos ?? []) as any[]}
     />
   );
 }
