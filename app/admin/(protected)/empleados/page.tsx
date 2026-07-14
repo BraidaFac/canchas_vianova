@@ -12,7 +12,7 @@ export default async function EmpleadosPage() {
   const supabase = await createSupabaseServerClient();
   const { data: empleados } = await supabase
     .from("admins")
-    .select("id, telefono, nombre, rol, activo, created_at")
+    .select("id, telefono, nombre, username, rol, activo, created_at")
     .order("created_at");
 
   return <EmpleadosClient empleados={empleados ?? []} sessionId={session.id} />;

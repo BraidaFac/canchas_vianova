@@ -36,6 +36,7 @@ type Empleado = {
   id: string;
   telefono: string;
   nombre: string;
+  username: string | null;
   rol: string;
   activo: boolean;
   created_at: string;
@@ -44,6 +45,7 @@ type Empleado = {
 const empleadoSchema = z.object({
   nombre: z.string().min(2, "Mínimo 2 caracteres"),
   telefono: z.string().min(10, "Teléfono inválido"),
+  username: z.string().min(3, "Mínimo 3 caracteres").or(z.literal("")).optional(),
   pin: z.string().min(4, "PIN mínimo 4 dígitos").max(8),
   rol: z.enum(["admin", "superadmin"]),
 });
@@ -69,13 +71,13 @@ export default function EmpleadosClient({
 
   function abrirCrear() {
     setEditando(null);
-    form.reset({ nombre: "", telefono: "", pin: "", rol: "admin" });
+    form.reset({ nombre: "", telefono: "", username: "", pin: "", rol: "admin" });
     setDialogOpen(true);
   }
 
   function abrirEditar(e: Empleado) {
     setEditando(e);
-    form.reset({ nombre: e.nombre, telefono: e.telefono, pin: "", rol: e.rol as "admin" | "superadmin" });
+    form.reset({ nombre: e.nombre, telefono: e.telefono, username: e.username ?? "", pin: "", rol: e.rol as "admin" | "superadmin" });
     setDialogOpen(true);
   }
 
@@ -249,6 +251,17 @@ export default function EmpleadosClient({
               <Input {...form.register("telefono")} placeholder="5491100000000" className="h-8 text-sm" />
               {form.formState.errors.telefono && (
                 <p className="text-xs text-destructive mt-1">{form.formState.errors.telefono.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-muted-foreground block mb-1">
+                Username{" "}
+                <span className="text-muted-foreground font-normal">(opcional)</span>
+              </label>
+              <Input {...form.register("username")} placeholder="juanperez" className="h-8 text-sm" autoComplete="off" />
+              {form.formState.errors.username && (
+                <p className="text-xs text-destructive mt-1">{form.formState.errors.username.message}</p>
               )}
             </div>
 

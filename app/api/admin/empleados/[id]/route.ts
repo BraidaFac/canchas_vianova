@@ -21,6 +21,7 @@ export async function PUT(
   const update: Record<string, unknown> = {};
   if (body.nombre !== undefined) update.nombre = body.nombre;
   if (body.telefono !== undefined) update.telefono = body.telefono;
+  if (body.username !== undefined) update.username = body.username || null;
   if (body.rol !== undefined) update.rol = body.rol;
   if (body.activo !== undefined) update.activo = body.activo;
   if (body.pin && body.pin.length >= 4) {
