@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     estado = "pendiente_pago",
     es_fijo = false,
     fecha_hasta,
+    recurrente_id: recurrenteIdDirect,
   } = body;
 
   const supabase = await createSupabaseServerClient();
@@ -64,9 +65,9 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Turno fijo: insert into reservas_recurrentes first
-  let recurrenteId: number | null = null;
-  if (es_fijo && clienteId) {
+  // Turno fijo: usar recurrente_id existente o crear uno nuevo
+  let recurrenteId: number | null = recurrenteIdDirect ?? null;
+  if (!recurrenteId && es_fijo && clienteId) {
     const diaSemana = new Date(fecha + "T12:00:00").getDay();
     const { data: rec, error: recErr } = await supabase
       .from("reservas_recurrentes")

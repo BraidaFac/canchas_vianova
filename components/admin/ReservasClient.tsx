@@ -20,8 +20,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
 import ReservaModal from "./ReservaModal";
+import CancelReservaDialog from "./CancelReservaDialog";
 
 type Cancha = { id: number; nombre: string; tipo: string; jugadores: number };
 type Turno = { id: number; hora_inicio: string; hora_fin: string };
@@ -34,6 +34,7 @@ type Reserva = {
   canal: string;
   cancha_id: number;
   turno_id: number;
+  recurrente_id: number | null;
   monto_total: number;
   monto_abonado: number;
   created_at: string;
@@ -42,12 +43,29 @@ type Reserva = {
   turnos: { hora_inicio: string } | null;
 };
 
-const estadoConfig: Record<string, { label: string; className: string }> = {
-  confirmada: { label: "Confirmada", className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
-  pendiente_pago: { label: "Pend. pago", className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
-  cancelada: { label: "Cancelada", className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" },
-};
 
+function EstadoBadge({ estado }: { estado: string }) {
+  const map: Record<string, { label: string; className: string }> = {
+    confirmada: {
+      label: "Confirmada",
+      className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+    },
+    pendiente_pago: {
+      label: "Pend. pago",
+      className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+    },
+    cancelada: {
+      label: "Cancelada",
+      className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+    },
+  };
+  const cfg = map[estado] ?? { label: estado, className: "bg-muted text-muted-foreground" };
+  return (
+    <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${cfg.className}`}>
+      {cfg.label}
+    </span>
+  );
+}
 
 export default function ReservasClient({
   reservas,
@@ -68,6 +86,7 @@ export default function ReservasClient({
   const [busqueda, setBusqueda] = useState(busquedaInicial);
   const [modalCreate, setModalCreate] = useState(false);
   const [modalEdit, setModalEdit] = useState<Reserva | null>(null);
+  const [cancelDialog, setCancelDialog] = useState<Reserva | null>(null);
 
   function cambiarFiltro(estado: string) {
     const params = new URLSearchParams();
@@ -97,6 +116,7 @@ export default function ReservasClient({
       fecha: r.fecha,
       monto_total: r.monto_total,
       monto_abonado: r.monto_abonado,
+      recurrente_id: r.recurrente_id,
       clientes: r.clientes,
     };
   }
@@ -129,11 +149,12 @@ export default function ReservasClient({
           <Button
             variant="default"
             size="sm"
-            className="gap-1.5 h-8 px-3 shrink-0"
+            className="h-8 shrink-0"
             onClick={() => setModalCreate(true)}
+            title="Nueva reserva"
           >
             <Plus size={13} />
-            <span className="text-xs">Nueva reserva</span>
+            <span className="hidden sm:inline text-xs">Nueva reserva</span>
           </Button>
         </div>
       </div>
@@ -152,14 +173,14 @@ export default function ReservasClient({
                 <th className="px-3 py-2 text-left font-medium text-muted-foreground hidden sm:table-cell">Cancha</th>
                 <th className="px-3 py-2 text-left font-medium text-muted-foreground hidden md:table-cell">Fecha</th>
                 <th className="px-3 py-2 text-left font-medium text-muted-foreground hidden md:table-cell">Hora</th>
-                <th className="px-3 py-2 text-left font-medium text-muted-foreground">Estado</th>
+                <th className="px-3 py-2 text-left font-medium text-muted-foreground">Tipo</th>
+                <th className="px-3 py-2 text-left font-medium text-muted-foreground hidden sm:table-cell">Estado</th>
                 <th className="px-3 py-2 text-right font-medium text-muted-foreground hidden sm:table-cell">Monto</th>
                 <th className="px-3 py-2 text-right font-medium text-muted-foreground">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filtradas.map((r) => {
-                const cfg = estadoConfig[r.estado] ?? { label: r.estado, className: "" };
                 return (
                   <tr
                     key={r.id}
@@ -183,9 +204,14 @@ export default function ReservasClient({
                       {r.turnos?.hora_inicio.slice(0, 5) ?? "—"}
                     </td>
                     <td className="px-3 py-2.5">
-                      <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-medium", cfg.className)}>
-                        {cfg.label}
-                      </span>
+                      {r.recurrente_id != null && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                          Fijo
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2.5 hidden sm:table-cell">
+                      <EstadoBadge estado={r.estado} />
                     </td>
                     <td className="px-3 py-2.5 text-right hidden sm:table-cell">
                       <div>${r.monto_abonado.toLocaleString("es-AR")}</div>
@@ -200,11 +226,7 @@ export default function ReservasClient({
                         {r.estado !== "cancelada" && (
                           <Button
                             variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive" title="Cancelar"
-                            onClick={async () => {
-                              if (!confirm(`¿Cancelar la reserva ${r.id_legible}?`)) return;
-                              const res = await fetch(`/api/admin/reservas/${r.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ estado: "cancelada" }) });
-                              if (res.ok) router.refresh();
-                            }}
+                            onClick={() => setCancelDialog(r)}
                           >
                             <X size={11} />
                           </Button>
@@ -221,11 +243,10 @@ export default function ReservasClient({
                               <Pencil size={13} className="mr-2" />Editar
                             </DropdownMenuItem>
                             {r.estado !== "cancelada" && (
-                              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={async () => {
-                                if (!confirm(`¿Cancelar la reserva ${r.id_legible}?`)) return;
-                                const res = await fetch(`/api/admin/reservas/${r.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ estado: "cancelada" }) });
-                                if (res.ok) router.refresh();
-                              }}>
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => setCancelDialog(r)}
+                              >
                                 <X size={13} className="mr-2" />Cancelar
                               </DropdownMenuItem>
                             )}
@@ -249,6 +270,7 @@ export default function ReservasClient({
           canchas={canchas}
           turnos={turnos}
           precios={precios}
+          reservasExistentes={reservas}
         />
       )}
 
@@ -261,6 +283,24 @@ export default function ReservasClient({
           turnos={turnos}
           precios={precios}
           reserva={toReservaFull(modalEdit)}
+        />
+      )}
+
+      {cancelDialog && (
+        <CancelReservaDialog
+          open={true}
+          onClose={() => setCancelDialog(null)}
+          onSuccess={() => { setCancelDialog(null); router.refresh(); }}
+          reserva={{
+            id: cancelDialog.id,
+            id_legible: cancelDialog.id_legible,
+            fecha: cancelDialog.fecha,
+            monto_abonado: cancelDialog.monto_abonado,
+            recurrente_id: cancelDialog.recurrente_id,
+            clientes: cancelDialog.clientes
+              ? { nombre: cancelDialog.clientes.nombre, telefono: cancelDialog.clientes.telefono }
+              : null,
+          }}
         />
       )}
     </div>

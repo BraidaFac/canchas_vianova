@@ -38,6 +38,7 @@ type DatosBancarios = {
 };
 type Disponibilidad = { cancha_id: number; dia_semana: number; habilitada: boolean };
 type Turno = { id: number; hora_inicio: string; hora_fin: string };
+type BotConfig = { clave: string; valor: string; descripcion: string | null; updated_at: string };
 
 export default function ConfigClient({
   canchas,
@@ -45,12 +46,15 @@ export default function ConfigClient({
   datosBancarios,
   disponibilidad: initialDisponibilidad,
   turnos: initialTurnos,
+  botConfig,
+  esSuperAdmin = false,
 }: {
   canchas: Cancha[];
   precios: Precio[];
   datosBancarios: DatosBancarios[];
   disponibilidad: Disponibilidad[];
   turnos: Turno[];
+  botConfig: BotConfig[];
   esSuperAdmin?: boolean;
 }) {
   const router = useRouter();
@@ -128,12 +132,15 @@ export default function ConfigClient({
 
       <div className="flex-1 overflow-auto p-4">
         <Tabs defaultValue="disponibilidad" className="max-w-3xl">
-          <TabsList className="mb-4">
-            <TabsTrigger value="disponibilidad">Disponibilidad</TabsTrigger>
-            <TabsTrigger value="turnos">Turnos</TabsTrigger>
-            <TabsTrigger value="precios">Precios</TabsTrigger>
-            <TabsTrigger value="bancarios">Datos bancarios</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto mb-4 scrollbar-hide">
+            <TabsList className="w-max">
+              <TabsTrigger value="disponibilidad">Disponibilidad</TabsTrigger>
+              <TabsTrigger value="turnos">Turnos</TabsTrigger>
+              <TabsTrigger value="precios">Precios</TabsTrigger>
+              <TabsTrigger value="bancarios">Datos bancarios</TabsTrigger>
+              {esSuperAdmin && <TabsTrigger value="bot">Bot n8n</TabsTrigger>}
+            </TabsList>
+          </div>
 
           {/* DISPONIBILIDAD */}
           <TabsContent value="disponibilidad">
@@ -239,6 +246,13 @@ export default function ConfigClient({
               </div>
             </div>
           </TabsContent>
+
+          {/* BOT N8N — solo superadmin */}
+          {esSuperAdmin && (
+            <TabsContent value="bot">
+              <BotConfigTab botConfig={botConfig} onSaved={() => router.refresh()} />
+            </TabsContent>
+          )}
 
           {/* DATOS BANCARIOS */}
           <TabsContent value="bancarios">
@@ -560,6 +574,135 @@ function TurnosTab({
             </Tooltip>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Bot n8n config ──────────────────────────────────────────────────────────
+
+function BotConfigTab({
+  botConfig: initialConfig,
+  onSaved,
+}: {
+  botConfig: BotConfig[];
+  onSaved: () => void;
+}) {
+  const [config, setConfig] = useState(initialConfig);
+  const [saving, setSaving] = useState<string | null>(null);
+
+  async function updateConfig(clave: string, valor: string) {
+    setSaving(clave);
+    const res = await fetch("/api/admin/config/bot", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clave, valor }),
+    });
+    if (res.ok) {
+      setConfig((prev) => prev.map((c) => (c.clave === clave ? { ...c, valor } : c)));
+      toast.success("Configuración actualizada");
+      onSaved();
+    } else {
+      const json = await res.json().catch(() => ({}));
+      toast.error(json.error ?? "Error al guardar");
+    }
+    setSaving(null);
+  }
+
+  if (config.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground text-center py-8">
+        No hay configuraciones registradas en bot_config.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-muted-foreground">
+        Configuraciones del bot de WhatsApp (n8n). Cambios se aplican en tiempo real.
+      </p>
+      {config.map((item) => {
+        const isBoolean = item.valor === "true" || item.valor === "false";
+        const isOn = item.valor === "true";
+        return (
+          <div
+            key={item.clave}
+            className="flex flex-col gap-2 px-4 py-3 rounded-lg border border-border bg-card sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-medium">{item.descripcion ?? item.clave}</p>
+              <p className="text-xs text-muted-foreground font-mono mt-0.5">{item.clave}</p>
+            </div>
+            {isBoolean ? (
+              <button
+                disabled={saving === item.clave}
+                onClick={() => updateConfig(item.clave, isOn ? "false" : "true")}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                  isOn ? "bg-primary" : "bg-input"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-background shadow-lg transition-transform ${
+                    isOn ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            ) : (
+              <StringConfigInput
+                value={item.valor}
+                disabled={saving === item.clave}
+                onSave={(val) => updateConfig(item.clave, val)}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function StringConfigInput({
+  value: initialValue,
+  disabled,
+  onSave,
+}: {
+  value: string;
+  disabled: boolean;
+  onSave: (val: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(initialValue);
+
+  if (!editing) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-mono text-muted-foreground">{initialValue}</span>
+        <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
+          Editar
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className="h-8 w-full sm:w-36 text-sm font-mono"
+      />
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          disabled={disabled}
+          onClick={() => { onSave(value); setEditing(false); }}
+        >
+          Guardar
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => { setValue(initialValue); setEditing(false); }}>
+          Cancelar
+        </Button>
       </div>
     </div>
   );
