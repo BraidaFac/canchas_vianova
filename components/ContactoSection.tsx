@@ -3,7 +3,7 @@
 import { MapPin, Clock, Phone, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const WA_NUMBER = "5434826783770";
+const WA_NUMBER = "543482678377";
 const WA_LINK = `https://wa.me/${WA_NUMBER}`;
 const IG_LINK = "https://www.instagram.com/vianova.complejo/";
 
@@ -20,7 +20,8 @@ export default function ContactoSection() {
             ¿Dónde encontrarnos?
           </h2>
           <p className="text-[#1A1A1A]/60 max-w-lg mx-auto">
-            Estamos en Reconquista, Santa Fe. Visitanos o escribinos cuando quieras.
+            Estamos en Reconquista, Santa Fe. Visitanos o escribinos cuando
+            quieras.
           </p>
         </div>
 
@@ -33,10 +34,15 @@ export default function ContactoSection() {
                   <MapPin className="h-5 w-5 text-[#133D34]" />
                 </div>
                 <div>
-                  <p className="font-semibold text-[#133D34] text-sm mb-0.5">Dirección</p>
+                  <p className="font-semibold text-[#133D34] text-sm mb-0.5">
+                    Dirección
+                  </p>
                   <p className="text-[#1A1A1A]/70 text-sm">
-                    Reconquista, Santa Fe, Argentina<br />
-                    <span className="text-[#1A1A1A]/40 text-xs">(dirección exacta próximamente)</span>
+                    Reconquista, Santa Fe, Argentina
+                    <br />
+                    <span className="text-[#1A1A1A]/40 text-xs">
+                      (dirección exacta próximamente)
+                    </span>
                   </p>
                 </div>
               </div>
@@ -46,7 +52,9 @@ export default function ContactoSection() {
                   <Clock className="h-5 w-5 text-[#133D34]" />
                 </div>
                 <div>
-                  <p className="font-semibold text-[#133D34] text-sm mb-0.5">Horarios</p>
+                  <p className="font-semibold text-[#133D34] text-sm mb-0.5">
+                    Horarios
+                  </p>
                   <p className="text-[#1A1A1A]/70 text-sm">
                     Todos los días: 08:00 a 00:00
                   </p>
@@ -58,7 +66,9 @@ export default function ContactoSection() {
                   <Phone className="h-5 w-5 text-[#133D34]" />
                 </div>
                 <div>
-                  <p className="font-semibold text-[#133D34] text-sm mb-0.5">WhatsApp</p>
+                  <p className="font-semibold text-[#133D34] text-sm mb-0.5">
+                    WhatsApp
+                  </p>
                   <a
                     href={WA_LINK}
                     target="_blank"
@@ -75,7 +85,9 @@ export default function ContactoSection() {
                   <Instagram className="h-5 w-5 text-[#133D34]" />
                 </div>
                 <div>
-                  <p className="font-semibold text-[#133D34] text-sm mb-0.5">Instagram</p>
+                  <p className="font-semibold text-[#133D34] text-sm mb-0.5">
+                    Instagram
+                  </p>
                   <a
                     href={IG_LINK}
                     target="_blank"
