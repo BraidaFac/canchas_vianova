@@ -7,7 +7,7 @@ import { MessageCircle, X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-const WA_NUMBER = "5434826783770";
+const WA_NUMBER = "543482678377";
 
 interface Message {
   id: number;
@@ -44,7 +44,7 @@ export default function ChatBot() {
     // Open WhatsApp with the message
     window.open(
       `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`,
-      "_blank"
+      "_blank",
     );
 
     // Bot reply
@@ -164,7 +164,11 @@ export default function ChatBot() {
               <motion.span
                 className="w-1.5 h-1.5 rounded-full bg-white shrink-0"
                 animate={{ scale: [1, 1.4, 1] }}
-                transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                transition={{
+                  duration: 1.4,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
               />
               En línea
             </motion.div>
@@ -174,7 +178,9 @@ export default function ChatBot() {
           onClick={() => setOpen((v) => !v)}
           title="Chateá con nuestro asistente"
           className="w-14 h-14 rounded-full text-white flex items-center justify-center shadow-xl cursor-pointer relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #133D34 0%, #1a5248 100%)" }}
+          style={{
+            background: "linear-gradient(135deg, #133D34 0%, #1a5248 100%)",
+          }}
           aria-label={open ? "Cerrar chat" : "Abrir chat"}
         >
           <AnimatePresence mode="wait" initial={false}>

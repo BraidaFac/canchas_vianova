@@ -19,7 +19,7 @@ import type { TurnosCanchas, Cancha, Turno } from "@/lib/turnos";
 
 const FUTBOL5_IDS = [3, 4, 5];
 const FUTBOL8_IDS = [1, 2];
-const WA_NUMBER = "5434826783770";
+const WA_NUMBER = "543482678377";
 
 function generateDates(count = 15): Date[] {
   const today = startOfToday();
