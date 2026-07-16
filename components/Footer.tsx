@@ -60,7 +60,7 @@ export default function Footer() {
                 Todos los días: 08:00 — 00:00
               </p>
               <a
-                href="https://wa.me/5434826783770"
+                href="https://wa.me/543482678377"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white/60 hover:text-white text-sm transition-colors block"
