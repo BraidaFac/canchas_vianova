@@ -1,6 +1,7 @@
 import { RenderMounted } from "@/components/ui/ClientRender";
 import type { Metadata, Viewport } from "next";
 import { DM_Serif_Display, DM_Sans, JetBrains_Mono } from "next/font/google";
+import SWRegister from "./sw-register";
 import "./globals.css";
 
 const dmSerifDisplay = DM_Serif_Display({
@@ -86,6 +87,11 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/favicon.ico", sizes: "180x180", type: "image/png" }],
     shortcut: [{ url: "/favicon.ico", sizes: "96x96", type: "image/png" }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: siteName,
   },
   manifest: "/manifest.json",
   alternates: {
@@ -192,6 +198,7 @@ export default function RootLayout({
         style={{ fontFamily: "var(--font-sans), sans-serif" }}
       >
         <RenderMounted>{children}</RenderMounted>
+        <SWRegister />
       </body>
     </html>
   );

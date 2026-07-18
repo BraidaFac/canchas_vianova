@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sin conexión – Vía Nova</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        background: #0a1f1a;
+        color: #e5e7eb;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+      }
+      .card {
+        background: #133D34;
+        border-radius: 1rem;
+        padding: 2.5rem 2rem;
+        max-width: 360px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 2px 12px rgba(0,0,0,.3);
+      }
+      .icon { font-size: 3rem; margin-bottom: 1rem; }
+      h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: .5rem; color: #fff; }
+      p { font-size: .95rem; color: #9ca3af; line-height: 1.5; margin-bottom: 1.5rem; }
+      button {
+        background: #16a34a;
+        color: #fff;
+        border: none;
+        border-radius: .5rem;
+        padding: .75rem 1.5rem;
+        font-size: 1rem;
+        cursor: pointer;
+        width: 100%;
+      }
+      button:hover { background: #15803d; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="icon">📡</div>
+      <h1>Sin conexión</h1>
+      <p>No hay red disponible. Revisá tu conexión e intentá de nuevo.</p>
+      <button onclick="location.reload()">Reintentar</button>
+    </div>
+  </body>
+</html>
