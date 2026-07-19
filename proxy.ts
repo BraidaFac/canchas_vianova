@@ -20,6 +20,7 @@ export async function proxy(request: NextRequest) {
 
   // Public routes under /admin
   if (pathname === "/admin/login") return NextResponse.next();
+  if (pathname === "/admin/manifest.webmanifest") return NextResponse.next();
 
   if (pathname.startsWith("/admin")) {
     const token = request.cookies.get("admin_session")?.value;
