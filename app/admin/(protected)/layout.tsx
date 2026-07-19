@@ -2,6 +2,11 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import AdminLayoutClient from "@/components/admin/AdminLayoutClient";
 import { Toaster } from "sonner";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  manifest: "/admin/manifest.webmanifest",
+};
 
 export default async function AdminLayout({
   children,

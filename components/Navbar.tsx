@@ -93,6 +93,7 @@ export default function Navbar() {
               </SheetTrigger>
               <SheetContent
                 side="right"
+                showCloseButton={false}
                 className="w-72 bg-[#133D34] border-l border-white/10 p-0"
               >
                 <div className="flex flex-col h-full">
