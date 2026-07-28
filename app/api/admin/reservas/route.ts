@@ -83,6 +83,12 @@ export async function POST(req: NextRequest) {
       .select("id")
       .single();
     if (recErr) {
+      if (recErr.code === "23505") {
+        return NextResponse.json(
+          { error: "Ya existe un turno fijo activo para ese slot y día" },
+          { status: 409 }
+        );
+      }
       return NextResponse.json({ error: recErr.message }, { status: 400 });
     }
     recurrenteId = rec.id;
