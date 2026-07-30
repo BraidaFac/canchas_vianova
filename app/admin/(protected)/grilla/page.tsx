@@ -12,7 +12,7 @@ function sortTurnos<T extends { hora_inicio: string }>(arr: T[]): T[] {
   });
 }
 
-type CanchaRow = { id: number; nombre: string; tipo: string; jugadores: number; activa: boolean; espacio_id: number };
+type CanchaRow = { id: number; nombre: string; tipo_cancha_id: number; tipo_cancha?: { clave: string | null; nombre: string }; jugadores: number; activa: boolean; espacio_id: number };
 
 function canchaDisponibleParaDia(
   cancha: CanchaRow,
@@ -31,11 +31,11 @@ function canchaDisponibleParaDia(
   if (!semanal?.habilitada) return false;
 
   // f8: unavailable if same espacio has an active f5 that day
-  if (cancha.tipo === "f8") {
+  if (cancha.tipo_cancha?.clave === "f8") {
     const hasActiveF5 = todasCanchas.some(
       (c) =>
         c.espacio_id === cancha.espacio_id &&
-        c.tipo === "f5" &&
+        c.tipo_cancha?.clave === "f5" &&
         c.activa &&
         dispSemanal.some((d) => d.cancha_id === c.id && d.habilitada)
     );
@@ -68,14 +68,14 @@ export default async function GrillaPage({
     { data: reservas },
     { data: allReservas },
     { data: todosLosFijos },
-    { data: preciosData },
+    { data: precioReglasData },
     { data: dispSemanal },
     { data: dispOverrides },
     { data: eventosActivos },
   ] = await Promise.all([
     supabase
       .from("canchas")
-      .select("id, nombre, tipo, jugadores, activa, espacio_id")
+      .select("id, nombre, tipo_cancha_id, jugadores, activa, espacio_id, tipos_cancha(id, nombre, jugadores, clave)")
       .eq("activa", true)
       .order("id"),
 
@@ -105,10 +105,10 @@ export default async function GrillaPage({
       .select("id, cancha_id, turno_id, dia_semana, clientes(id, nombre, telefono)")
       .eq("activa", true),
 
-    // Precios por cancha
     supabase
-      .from("precios")
-      .select("cancha_id, precio, vigente_desde")
+      .from("precio_reglas")
+      .select("id, tipo_cancha_id, hora_desde, hora_hasta, dias_semana, precio, vigente_desde, activa")
+      .eq("activa", true)
       .order("vigente_desde", { ascending: false }),
 
     // Disponibilidad semanal para el día seleccionado
@@ -132,11 +132,11 @@ export default async function GrillaPage({
       .gte("fecha_fin", today),
   ]);
 
-  // Build map: most recent price per cancha
-  const precios: Record<number, number> = {};
-  (preciosData ?? []).forEach((p) => {
-    if (!precios[p.cancha_id]) precios[p.cancha_id] = p.precio;
-  });
+  const precioReglas = (precioReglasData ?? []).map(r => ({
+    ...r,
+    hora_desde: r.hora_desde.slice(0, 5),
+    hora_hasta: r.hora_hasta.slice(0, 5),
+  }));
 
   const fijosDelDia = (todosLosFijos ?? []).filter((f) => f.dia_semana === diaSemana);
 
@@ -168,7 +168,7 @@ export default async function GrillaPage({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       todosLosFijos={(todosLosFijos ?? []) as any[]}
       vistaInicial={params.vista === "3" ? "3" : "A"}
-      precios={precios}
+      precioReglas={precioReglas}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       eventosActivos={(eventosActivos ?? []) as any[]}
     />

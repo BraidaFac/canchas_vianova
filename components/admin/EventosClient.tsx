@@ -46,7 +46,7 @@ import { cn } from "@/lib/utils";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-type Cancha = { id: number; nombre: string; tipo: string; jugadores: number };
+type Cancha = { id: number; nombre: string; tipo_cancha_id: number; tipo_cancha?: { nombre: string }; jugadores: number };
 type Turno = { id: number; hora_inicio: string; hora_fin: string };
 type Slot = { id?: number; cancha_id: number; turno_id: number; dia_semana: number | null };
 
@@ -399,6 +399,7 @@ function EventoFormDialog({
                 value={form.fecha_inicio}
                 onChange={(v) => setForm((f) => ({ ...f, fecha_inicio: v }))}
                 placeholder="dd/MM/yyyy"
+                minDate={!evento ? new Date().toISOString().slice(0, 10) : undefined}
               />
             </div>
             <div className="space-y-1.5">

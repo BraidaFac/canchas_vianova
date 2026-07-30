@@ -37,6 +37,11 @@ export async function POST(req: NextRequest) {
     recurrente_id: recurrenteIdDirect,
   } = body;
 
+  const hoy = new Date().toISOString().slice(0, 10);
+  if (fecha < hoy) {
+    return NextResponse.json({ error: "No se pueden crear reservas en fechas pasadas" }, { status: 400 });
+  }
+
   const supabase = await createSupabaseServerClient();
 
   let clienteId = cliente_id;

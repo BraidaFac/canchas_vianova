@@ -22,8 +22,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import ReservaModal from "./ReservaModal";
 import CancelReservaDialog from "./CancelReservaDialog";
+import type { PrecioRegla } from "@/lib/types";
 
-type Cancha = { id: number; nombre: string; tipo: string; jugadores: number };
+type Cancha = { id: number; nombre: string; tipo_cancha_id: number; tipo_cancha?: { nombre: string }; jugadores: number };
 type Turno = { id: number; hora_inicio: string; hora_fin: string };
 
 type Reserva = {
@@ -39,7 +40,7 @@ type Reserva = {
   monto_abonado: number;
   created_at: string;
   clientes: { id?: string; nombre: string; telefono: string } | null;
-  canchas: { nombre: string; tipo: string } | null;
+  canchas: { nombre: string; tipos_cancha?: { nombre: string } | null } | null;
   turnos: { hora_inicio: string } | null;
 };
 
@@ -73,14 +74,14 @@ export default function ReservasClient({
   busqueda: busquedaInicial,
   canchas,
   turnos,
-  precios,
+  precioReglas,
 }: {
   reservas: Reserva[];
   filtroEstado: string;
   busqueda: string;
   canchas: Cancha[];
   turnos: Turno[];
-  precios: Record<number, number>;
+  precioReglas: PrecioRegla[];
 }) {
   const router = useRouter();
   const [busqueda, setBusqueda] = useState(busquedaInicial);
@@ -269,7 +270,7 @@ export default function ReservasClient({
           onSuccess={() => { setModalCreate(false); router.refresh(); }}
           canchas={canchas}
           turnos={turnos}
-          precios={precios}
+          precioReglas={precioReglas}
           reservasExistentes={reservas}
         />
       )}
@@ -281,7 +282,7 @@ export default function ReservasClient({
           onSuccess={() => { setModalEdit(null); router.refresh(); }}
           canchas={canchas}
           turnos={turnos}
-          precios={precios}
+          precioReglas={precioReglas}
           reserva={toReservaFull(modalEdit)}
         />
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { format, addDays, startOfToday } from "date-fns";
 import { es } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Loader2, Ban } from "lucide-react";
@@ -17,8 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { TurnosCanchas, Cancha, Turno } from "@/lib/turnos";
 
-const FUTBOL5_IDS = [3, 4, 5];
-const FUTBOL8_IDS = [1, 2];
 const WA_NUMBER = "543482678377";
 
 function generateDates(count = 15): Date[] {
@@ -36,7 +34,7 @@ export default function TurnosSection() {
   const [error, setError] = useState<string | null>(null);
   const [dates] = useState<Date[]>(generateDates(15));
   const [selectedDate, setSelectedDate] = useState<Date>(generateDates(1)[0]);
-  const [sportType, setSportType] = useState<"f5" | "f8">("f8");
+  const [selectedTipoCanchaId, setSelectedTipoCanchaId] = useState<number | null>(null);
   const [mobileIndex, setMobileIndex] = useState(0);
 
   const [bookingOpen, setBookingOpen] = useState(false);
@@ -67,8 +65,25 @@ export default function TurnosSection() {
       });
   }, []);
 
-  const canchaIds = sportType === "f5" ? FUTBOL5_IDS : FUTBOL8_IDS;
-  const canchas = allTurnos.filter((c) => canchaIds.includes(c.id));
+  // Derive unique tipos from loaded canchas
+  const tiposDisponibles = useMemo(() => {
+    const map = new Map<number, string>();
+    allTurnos.forEach((c) => {
+      if (!map.has(c.tipoCanchaId)) map.set(c.tipoCanchaId, c.tipoCanchaNombre);
+    });
+    return Array.from(map.entries()).map(([id, nombre]) => ({ id, nombre }));
+  }, [allTurnos]);
+
+  // Set the initial selected tipo once tipos are loaded
+  useEffect(() => {
+    if (tiposDisponibles.length > 0 && selectedTipoCanchaId === null) {
+      setSelectedTipoCanchaId(tiposDisponibles[0].id);
+    }
+  }, [tiposDisponibles, selectedTipoCanchaId]);
+
+  // Filter canchas by selected tipo
+  const canchas = allTurnos.filter((c) => c.tipoCanchaId === selectedTipoCanchaId);
+  const tipoNombre = tiposDisponibles.find((t) => t.id === selectedTipoCanchaId)?.nombre ?? "";
   const dateKey = format(selectedDate, "dd/MM");
 
   const handleSlotClick = (cancha: Cancha, turno: Turno) => {
@@ -115,31 +130,30 @@ export default function TurnosSection() {
           </p>
         </div>
 
-        {/* Sport type tabs */}
-        <div className="flex justify-center mb-6">
-          <Tabs
-            value={sportType}
-            onValueChange={(v) => {
-              setSportType(v as "f5" | "f8");
-              setMobileIndex(0);
-            }}
-          >
-            <TabsList className="bg-[#F8F6F1] border border-[#133D34]/20">
-              <TabsTrigger
-                value="f8"
-                className="data-[state=active]:bg-[#133D34] data-[state=active]:text-white px-6"
-              >
-                Fútbol 8
-              </TabsTrigger>
-              <TabsTrigger
-                value="f5"
-                className="data-[state=active]:bg-[#133D34] data-[state=active]:text-white px-6"
-              >
-                Fútbol 5
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+        {/* Sport type tabs — dynamic */}
+        {tiposDisponibles.length > 0 && (
+          <div className="flex justify-center mb-6">
+            <Tabs
+              value={String(selectedTipoCanchaId ?? "")}
+              onValueChange={(v) => {
+                setSelectedTipoCanchaId(Number(v));
+                setMobileIndex(0);
+              }}
+            >
+              <TabsList className="bg-[#F8F6F1] border border-[#133D34]/20">
+                {tiposDisponibles.map((t) => (
+                  <TabsTrigger
+                    key={t.id}
+                    value={String(t.id)}
+                    className="data-[state=active]:bg-[#133D34] data-[state=active]:text-white px-6"
+                  >
+                    {t.nombre}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
 
         {/* Date pills */}
         <div className="flex justify-center mb-8">
@@ -181,50 +195,6 @@ export default function TurnosSection() {
           </div>
         ) : error ? (
           <div className="text-center py-16 text-red-500">{error}</div>
-        ) : canchas.length === 0 && sportType === "f5" ? (
-          /* F5 no está en el sistema aún — mostrar cards placeholder */
-          <div className="grid sm:grid-cols-3 gap-6">
-            {["Cancha A", "Cancha B", "Cancha C"].map((nombre) => (
-              <div
-                key={nombre}
-                className="relative rounded-2xl overflow-hidden"
-                style={{ background: "linear-gradient(145deg, #f0ede6 0%, #e8e4db 100%)" }}
-              >
-                <div className="h-1.5 w-full" style={{ background: "linear-gradient(90deg, #133D34, #1a5248, #133D34)" }} />
-                <div className="p-5">
-                  <h3 className="font-semibold text-[#133D34] text-lg mb-0.5">{nombre}</h3>
-                  <p className="text-[#1A1A1A]/50 text-xs mb-4">Fútbol 5 · 10 jugadores</p>
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.92 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.35 }}
-                    className="flex flex-col items-center justify-center gap-3 py-8"
-                  >
-                    <motion.div
-                      animate={{ rotate: [0, -8, 8, -8, 0] }}
-                      transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 2.5 }}
-                      className="w-12 h-12 rounded-full bg-[#133D34]/10 flex items-center justify-center"
-                    >
-                      <Ban className="h-6 w-6 text-[#133D34]/40" />
-                    </motion.div>
-                    <div className="text-center">
-                      <p className="text-sm font-medium text-[#133D34]/70">
-                        Cancha no disponible hoy
-                      </p>
-                      <p className="text-xs text-[#1A1A1A]/40 mt-1 max-w-[160px] mx-auto leading-relaxed">
-                        El espacio está siendo usado por las canchas de Fútbol 8
-                      </p>
-                    </div>
-                    <motion.div
-                      className="h-1 w-16 rounded-full bg-[#C6B997]/40"
-                      animate={{ scaleX: [0.4, 1, 0.4] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                  </motion.div>
-                </div>
-              </div>
-            ))}
-          </div>
         ) : canchas.length === 0 ? null : (
           <>
             {/* Desktop grid: all canchas side by side */}
@@ -250,7 +220,7 @@ export default function TurnosSection() {
                         {cancha.nombre}
                       </h3>
                       <p className="text-[#1A1A1A]/50 text-xs mb-4">
-                        {sportType === "f8" ? "Fútbol 8" : "Fútbol 5"} · {cancha.jugadores} jugadores
+                        {tipoNombre} · {cancha.jugadores} jugadores
                       </p>
 
                       <AnimatePresence mode="wait">
@@ -346,7 +316,7 @@ export default function TurnosSection() {
                         {canchas[mobileIndex].nombre}
                       </h3>
                       <p className="text-[#1A1A1A]/50 text-xs">
-                        {sportType === "f8" ? "Fútbol 8" : "Fútbol 5"} · {canchas[mobileIndex].jugadores} jugadores · {mobileIndex + 1}/{canchas.length}
+                        {tipoNombre} · {canchas[mobileIndex].jugadores} jugadores · {mobileIndex + 1}/{canchas.length}
                       </p>
                     </div>
                     <button
