@@ -21,8 +21,10 @@ import {
 import { X } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
 import CancelReservaDialog from "./CancelReservaDialog";
+import { resolvePrecio } from "@/lib/precio-reglas";
+import type { PrecioRegla } from "@/lib/types";
 
-type Cancha = { id: number; nombre: string; tipo: string; jugadores: number };
+type Cancha = { id: number; nombre: string; tipo_cancha_id: number; tipo_cancha?: { nombre: string }; jugadores: number };
 type Turno = { id: number; hora_inicio: string; hora_fin: string };
 type ClienteResult = { id: string; nombre: string; telefono: string };
 
@@ -45,7 +47,7 @@ type ReservaModalProps = {
   onSuccess: () => void;
   canchas: Cancha[];
   turnos: Turno[];
-  precios: Record<number, number>;
+  precioReglas: PrecioRegla[];
   prefill?: {
     canchaId?: number;
     turnoId?: number;
@@ -69,7 +71,7 @@ export default function ReservaModal({
   onSuccess,
   canchas,
   turnos,
-  precios,
+  precioReglas,
   prefill,
   reserva,
   reservasExistentes,
@@ -121,8 +123,13 @@ export default function ReservaModal({
 
   // Payment
   const [montoTotal, setMontoTotal] = useState<string>(() => {
-    const initId = prefill?.canchaId ?? canchas[0]?.id;
-    return initId && precios[initId] ? String(precios[initId]) : "";
+    if (!prefill?.canchaId || !prefill?.turnoId || !prefill?.fecha) return "";
+    const cancha = canchas.find(c => c.id === prefill.canchaId);
+    const turno = turnos.find(t => t.id === prefill.turnoId);
+    if (!cancha || !turno) return "";
+    const diaSemana = new Date(prefill.fecha + "T12:00:00").getDay();
+    const p = resolvePrecio(precioReglas, cancha.tipo_cancha_id, turno.hora_inicio, diaSemana, prefill.fecha);
+    return p !== null ? String(p) : "";
   });
   const [montoAbonado, setMontoAbonado] = useState("0");
 
@@ -144,12 +151,17 @@ export default function ReservaModal({
     return turnos.filter((t) => !ocupados.has(t.id));
   }, [isLocked, fecha, canchaId, turnos, reservasExistentes]);
 
-  // Sync price when cancha changes
+  // Sync price when cancha, turno or fecha changes
   useEffect(() => {
-    if (!isEdit && canchaId && precios[Number(canchaId)]) {
-      setMontoTotal(String(precios[Number(canchaId)]));
-    }
-  }, [canchaId, precios, isEdit]);
+    if (isEdit) return;
+    if (!canchaId || !turnoId || !fecha) return;
+    const cancha = canchas.find(c => c.id === Number(canchaId));
+    const turno = turnos.find(t => t.id === Number(turnoId));
+    if (!cancha || !turno) return;
+    const diaSemana = new Date(fecha + "T12:00:00").getDay();
+    const p = resolvePrecio(precioReglas, cancha.tipo_cancha_id, turno.hora_inicio, diaSemana, fecha);
+    if (p !== null) setMontoTotal(String(p));
+  }, [canchaId, turnoId, fecha, precioReglas, canchas, turnos, isEdit]);
 
   // Debounced client search
   const searchClientes = useCallback((q: string) => {
@@ -659,6 +671,7 @@ export default function ReservaModal({
                         setTurnoId("");
                       }}
                       placeholder="Seleccionar fecha"
+                      minDate={new Date().toISOString().slice(0, 10)}
                     />
                   </div>
                 </>

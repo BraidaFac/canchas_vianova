@@ -12,20 +12,23 @@ export async function PUT(request: NextRequest) {
   // Get cancha info
   const { data: cancha } = await supabase
     .from("canchas")
-    .select("espacio_id, tipo")
+    .select("espacio_id, tipo_cancha_id, tipos_cancha(clave)")
     .eq("id", cancha_id)
     .single();
 
   if (!cancha) return NextResponse.json({ error: "Cancha no encontrada" }, { status: 404 });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const clave = ((cancha.tipos_cancha as any) as { clave: string | null } | null)?.clave;
+
   if (habilitada) {
-    if (cancha.tipo === "f8") {
+    if (clave === "f8") {
       // Reject if any F5 in same espacio is enabled for this day
       const { data: f5canchas } = await supabase
         .from("canchas")
-        .select("id")
+        .select("id, tipos_cancha!inner(clave)")
         .eq("espacio_id", cancha.espacio_id)
-        .eq("tipo", "f5")
+        .eq("tipos_cancha.clave", "f5")
         .eq("activa", true);
 
       if (f5canchas && f5canchas.length > 0) {
@@ -43,13 +46,13 @@ export async function PUT(request: NextRequest) {
           );
         }
       }
-    } else if (cancha.tipo === "f5") {
+    } else if (clave === "f5") {
       // Auto-disable F8 canchas in same espacio for this day
       const { data: f8canchas } = await supabase
         .from("canchas")
-        .select("id")
+        .select("id, tipos_cancha!inner(clave)")
         .eq("espacio_id", cancha.espacio_id)
-        .eq("tipo", "f8")
+        .eq("tipos_cancha.clave", "f8")
         .eq("activa", true);
 
       if (f8canchas && f8canchas.length > 0) {

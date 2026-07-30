@@ -7,17 +7,17 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await request.json();
-  const { cancha_id, precio, tipo } = body;
+  const { cancha_id, precio, tipo_cancha_id } = body;
 
   const supabase = await createSupabaseServerClient();
   const hoy = new Date().toISOString().slice(0, 10);
 
-  // Bulk update by tipo (f5 or f8)
-  if (tipo && precio != null && precio > 0) {
+  // Bulk update by tipo_cancha_id
+  if (tipo_cancha_id && precio != null && precio > 0) {
     const { data: canchas } = await supabase
       .from("canchas")
       .select("id")
-      .eq("tipo", tipo)
+      .eq("tipo_cancha_id", tipo_cancha_id)
       .eq("activa", true);
 
     if (!canchas || canchas.length === 0) {

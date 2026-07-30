@@ -24,7 +24,7 @@ export default async function ReservasPage({
   let query = supabase
     .from("reservas")
     .select(
-      "id, id_legible, fecha, estado, canal, monto_total, monto_abonado, created_at, cancha_id, turno_id, recurrente_id, clientes(nombre, telefono), canchas(nombre, tipo), turnos(hora_inicio)"
+      "id, id_legible, fecha, estado, canal, monto_total, monto_abonado, created_at, cancha_id, turno_id, recurrente_id, clientes(nombre, telefono), canchas(nombre, tipos_cancha(nombre)), turnos(hora_inicio)"
     )
     .order("fecha", { ascending: false })
     .order("created_at", { ascending: false })
@@ -38,12 +38,12 @@ export default async function ReservasPage({
     { data: reservas },
     { data: canchas },
     { data: turnos },
-    { data: preciosData },
+    { data: precioReglasData },
   ] = await Promise.all([
     query,
     supabase
       .from("canchas")
-      .select("id, nombre, tipo, jugadores, activa")
+      .select("id, nombre, tipo_cancha_id, jugadores, activa, tipos_cancha(id, nombre, jugadores, clave)")
       .eq("activa", true)
       .order("id"),
     supabase
@@ -51,16 +51,17 @@ export default async function ReservasPage({
       .select("id, hora_inicio, hora_fin")
       .order("hora_inicio"),
     supabase
-      .from("precios")
-      .select("cancha_id, precio, vigente_desde")
+      .from("precio_reglas")
+      .select("id, tipo_cancha_id, hora_desde, hora_hasta, dias_semana, precio, vigente_desde, activa")
+      .eq("activa", true)
       .order("vigente_desde", { ascending: false }),
   ]);
 
-  // Build map: most recent price per cancha
-  const precios: Record<number, number> = {};
-  (preciosData ?? []).forEach((p) => {
-    if (!precios[p.cancha_id]) precios[p.cancha_id] = p.precio;
-  });
+  const precioReglas = (precioReglasData ?? []).map(r => ({
+    ...r,
+    hora_desde: r.hora_desde.slice(0, 5),
+    hora_hasta: r.hora_hasta.slice(0, 5),
+  }));
 
   return (
     <ReservasClient
@@ -71,7 +72,7 @@ export default async function ReservasPage({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       canchas={(canchas ?? []) as any[]}
       turnos={sortTurnos(turnos ?? [])}
-      precios={precios}
+      precioReglas={precioReglas}
     />
   );
 }

@@ -25,11 +25,13 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { DatePicker } from "@/components/ui/date-picker";
 import ReservaModal from "./ReservaModal";
+import type { PrecioRegla } from "@/lib/types";
 
 type Cancha = {
   id: number;
   nombre: string;
-  tipo: string;
+  tipo_cancha_id: number;
+  tipo_cancha?: { clave: string | null; nombre: string };
   jugadores: number;
   activa: boolean;
 };
@@ -79,7 +81,7 @@ type Props = {
   allReservas: Reserva[];
   todosLosFijos: Fijo[];
   vistaInicial: "A" | "3";
-  precios: Record<number, number>;
+  precioReglas: PrecioRegla[];
   eventosActivos: EventoActivo[];
 };
 
@@ -110,7 +112,7 @@ export default function GrillaClient({
   allReservas,
   todosLosFijos,
   vistaInicial,
-  precios,
+  precioReglas,
   eventosActivos,
 }: Props) {
   const router = useRouter();
@@ -141,7 +143,7 @@ export default function GrillaClient({
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
       if (tag === "input" || tag === "textarea" || tag === "select") return;
       if (e.key === "n" || e.key === "N") {
-        setModalCreate({ fecha });
+        if (!isPast) setModalCreate({ fecha });
       }
     }
     window.addEventListener("keydown", handleKeydown);
@@ -228,6 +230,7 @@ export default function GrillaClient({
   }
 
   const isToday = fecha === today;
+  const isPast = fecha < today;
 
   // Columnas para Vista Lista: N días desde hoy
   const diasCols = Array.from({ length: diasAMostrar }, (_, i) => {
@@ -274,6 +277,7 @@ export default function GrillaClient({
             className="h-8 w-8"
             onClick={() => setModalCreate({ fecha })}
             title="Nueva reserva"
+            disabled={isPast}
           >
             <Plus size={14} />
           </Button>
@@ -428,6 +432,7 @@ export default function GrillaClient({
             size="sm"
             className="gap-1.5 h-8 px-3"
             onClick={() => setModalCreate({ fecha })}
+            disabled={isPast}
           >
             <Plus size={13} />
             <span className="text-xs">Nueva</span>
@@ -469,7 +474,7 @@ export default function GrillaClient({
                   >
                     <div>{c.nombre}</div>
                     <div className="text-[10px] font-normal text-muted-foreground">
-                      F{c.jugadores === 16 ? "8" : "5"}
+                      {c.tipo_cancha?.nombre ?? "—"}
                     </div>
                   </th>
                 ))}
@@ -511,14 +516,20 @@ export default function GrillaClient({
                       return (
                         <td
                           key={cancha.id}
-                          className="h-10 align-middle px-2 py-1.5 border-r border-b border-border last:border-r-0 text-center cursor-pointer hover:bg-green-50/50 dark:hover:bg-green-950/20 transition-colors"
-                          onClick={() =>
-                            setModalCreate({
-                              canchaId: cancha.id,
-                              turnoId: turno.id,
-                              fecha,
-                            })
-                          }
+                          className={cn(
+                            "h-10 align-middle px-2 py-1.5 border-r border-b border-border last:border-r-0 text-center transition-colors",
+                            isPast
+                              ? "cursor-default"
+                              : "cursor-pointer hover:bg-green-50/50 dark:hover:bg-green-950/20",
+                          )}
+                          onClick={() => {
+                            if (!isPast)
+                              setModalCreate({
+                                canchaId: cancha.id,
+                                turnoId: turno.id,
+                                fecha,
+                              });
+                          }}
                         >
                           <span className="text-muted-foreground/30">—</span>
                         </td>
@@ -545,7 +556,7 @@ export default function GrillaClient({
                         onClick={() => {
                           if ("reserva" in slot && slot.reserva) {
                             setModalEdit(slot.reserva as ReservaFull);
-                          } else if ("fijo" in slot && slot.fijo) {
+                          } else if ("fijo" in slot && slot.fijo && !isPast) {
                             setModalCreate({
                               canchaId: cancha.id,
                               turnoId: turno.id,
@@ -740,7 +751,7 @@ export default function GrillaClient({
           }}
           canchas={canchas}
           turnos={turnos}
-          precios={precios}
+          precioReglas={precioReglas}
           prefill={modalCreate}
           reservasExistentes={allReservas}
         />
@@ -755,7 +766,7 @@ export default function GrillaClient({
           }}
           canchas={canchas}
           turnos={turnos}
-          precios={precios}
+          precioReglas={precioReglas}
           reserva={modalEdit}
         />
       )}

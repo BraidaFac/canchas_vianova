@@ -12,16 +12,20 @@ export default async function ConfigPage() {
 
   const [
     { data: canchas },
-    { data: precios },
+    { data: precioReglasData },
     { data: datosBancarios },
     { data: disponibilidad },
     { data: turnos },
     { data: botConfig },
+    { data: tiposCancha },
+    { data: espacios },
   ] = await Promise.all([
-    supabase.from("canchas").select("id, espacio_id, nombre, tipo, jugadores, activa").order("id"),
+    supabase.from("canchas").select("id, espacio_id, nombre, tipo_cancha_id, jugadores, activa, tipos_cancha(id, nombre, jugadores, clave), espacios_fisicos(id, nombre)").order("id"),
     supabase
-      .from("precios")
-      .select("id, cancha_id, precio, vigente_desde")
+      .from("precio_reglas")
+      .select("id, tipo_cancha_id, hora_desde, hora_hasta, dias_semana, precio, vigente_desde, activa, tipos_cancha(id, nombre, jugadores, clave, activo)")
+      .order("tipo_cancha_id")
+      .order("hora_desde")
       .order("vigente_desde", { ascending: false }),
     supabase
       .from("datos_bancarios")
@@ -35,17 +39,29 @@ export default async function ConfigPage() {
     esSuperAdmin
       ? supabase.from("bot_config").select("clave, valor, descripcion, updated_at").order("clave")
       : Promise.resolve({ data: [] }),
+    supabase.from("tipos_cancha").select("id, nombre, jugadores, clave, activo").order("id"),
+    supabase.from("espacios_fisicos").select("id, nombre, activo").order("id"),
   ]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const precioReglas = (precioReglasData ?? []).map((r: any) => ({
+    ...r,
+    hora_desde: r.hora_desde.slice(0, 5),
+    hora_hasta: r.hora_hasta.slice(0, 5),
+  }));
 
   return (
     <ConfigClient
-      canchas={canchas ?? []}
-      precios={precios ?? []}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      canchas={(canchas ?? []) as any[]}
+      precioReglas={precioReglas}
       datosBancarios={datosBancarios ?? []}
       disponibilidad={disponibilidad ?? []}
       turnos={turnos ?? []}
       botConfig={botConfig ?? []}
       esSuperAdmin={esSuperAdmin}
+      tiposCancha={tiposCancha ?? []}
+      espacios={espacios ?? []}
     />
   );
 }

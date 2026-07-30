@@ -118,6 +118,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Faltan campos obligatorios" }, { status: 400 });
   }
 
+  const hoy = new Date().toISOString().slice(0, 10);
+  if (fecha_inicio < hoy) {
+    return NextResponse.json({ error: "No se pueden crear eventos en fechas pasadas" }, { status: 400 });
+  }
+
   const supabase = await createSupabaseServerClient();
 
   // Validate slot conflicts before creating

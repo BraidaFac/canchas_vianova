@@ -1,13 +1,33 @@
-export type CanchaType = "f5" | "f8";
 export type ReservaEstado = "pendiente_pago" | "confirmada" | "cancelada";
 export type ReservaCanal = "whatsapp" | "web" | "manual";
 export type AdminRol = "admin" | "superadmin";
+
+export type TipoCancha = {
+  id: number;
+  nombre: string;
+  jugadores: number;
+  clave: string | null;
+  activo: boolean;
+};
+
+export type PrecioRegla = {
+  id: number;
+  tipo_cancha_id: number;
+  hora_desde: string;   // "HH:MM"
+  hora_hasta: string;   // "HH:MM"
+  dias_semana: number[] | null;
+  precio: number;
+  vigente_desde: string; // YYYY-MM-DD
+  activa: boolean;
+  tipo_cancha?: TipoCancha;
+};
 
 export type Cancha = {
   id: number;
   espacio_id: number;
   nombre: string;
-  tipo: CanchaType;
+  tipo_cancha_id: number;
+  tipo_cancha?: TipoCancha;
   jugadores: number;
   activa: boolean;
 };
@@ -88,7 +108,7 @@ export type DisponibilidadOverride = {
 export type SlotGrilla = {
   cancha_id: number;
   cancha_nombre: string;
-  cancha_tipo: CanchaType;
+  cancha_tipo_nombre: string;
   turno_id: number;
   hora_inicio: string;
   hora_fin: string;
