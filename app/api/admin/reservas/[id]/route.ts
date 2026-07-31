@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -27,13 +26,14 @@ export async function PATCH(
     .from("reservas")
     .update(update)
     .eq("id", id)
-    .select("id, recurrente_id")
+    .select("id, recurrente_id, monto_total, fecha, cliente:clientes(nombre)")
     .single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
+  // NOTE: factura emission now goes through POST /api/admin/pagos (requires pago_id)
   if (body.cancelar_recurrente && data.recurrente_id) {
     const today = new Date().toISOString().slice(0, 10);
 
