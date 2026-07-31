@@ -53,6 +53,18 @@ export async function POST(request: NextRequest) {
 
   const supabase = await createSupabaseServerClient();
 
+  // Verify origen_id exists (only reserva supported now; consumo table added in future plan)
+  if (origen_tipo === "reserva") {
+    const { data: reserva } = await supabase
+      .from("reservas")
+      .select("id")
+      .eq("id", origen_id)
+      .single();
+    if (!reserva) {
+      return NextResponse.json({ error: "Reserva no encontrada" }, { status: 404 });
+    }
+  }
+
   // Insert all pagos
   const insertRows = pagosInput.map((p) => ({
     origen_tipo,
