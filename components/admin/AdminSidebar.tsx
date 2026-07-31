@@ -15,6 +15,10 @@ import {
   PanelLeftOpen,
   Contact,
   Trophy,
+  Receipt,
+  Wallet,
+  ShoppingCart,
+  Package,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -27,7 +31,11 @@ const navItems = [
   { href: "/admin/reservas", label: "Reservas", icon: List },
   { href: "/admin/clientes", label: "Clientes", icon: Contact },
   { href: "/admin/eventos", label: "Eventos", icon: Trophy },
+  { href: "/admin/cobros", label: "Cobros", icon: Wallet },
   { href: "/admin/empleados", label: "Empleados", icon: Users, superadminOnly: true },
+  { href: "/admin/facturacion", label: "Facturación", icon: Receipt, requiresFacturacion: true },
+  { href: "/admin/pos", label: "POS", icon: ShoppingCart, requiresPos: true },
+  { href: "/admin/stock", label: "Stock", icon: Package, requiresStock: true },
   { href: "/admin/config", label: "Configuración", icon: Settings },
 ];
 
@@ -35,16 +43,30 @@ type Props = {
   session: AdminSession;
   collapsed: boolean;
   onCollapsedChange: (v: boolean) => void;
+  facturacionActiva?: boolean;
+  posActivo?: boolean;
+  stockActivo?: boolean;
 };
 
-export default function AdminSidebar({ session, collapsed, onCollapsedChange }: Props) {
+export default function AdminSidebar({
+  session,
+  collapsed,
+  onCollapsedChange,
+  facturacionActiva = false,
+  posActivo = false,
+  stockActivo = false,
+}: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const visibleItems = navItems.filter(
-    (item) => !item.superadminOnly || session.rol === "superadmin"
-  );
+  const visibleItems = navItems.filter((item) => {
+    if (item.superadminOnly && session.rol !== "superadmin") return false;
+    if (item.requiresFacturacion && !facturacionActiva) return false;
+    if (item.requiresPos && !posActivo) return false;
+    if (item.requiresStock && !stockActivo) return false;
+    return true;
+  });
 
   async function handleLogout() {
     await fetch("/api/admin/logout", { method: "POST" });
