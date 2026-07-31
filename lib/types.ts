@@ -116,3 +116,21 @@ export type SlotGrilla = {
   es_fijo: boolean;
   disponible: boolean; // fn_cancha_disponible result
 };
+
+export type {
+  ConfigFacturacion,
+  ConfigFacturacionRaw,
+  Comprobante,
+  ComprobanteEstado,
+  EntidadFiscal,
+  EntidadFiscalRaw,
+  CuentaBancaria,
+  Pago,
+  MedioPago,
+  OrigenTipo,
+  EstadoFiscal,
+  IvaAlicuota,
+  ConfigModulos,
+  PagoConComprobante,
+  CobroOrigen,
+} from "./facturacion/types";
