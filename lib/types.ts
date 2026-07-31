@@ -117,6 +117,58 @@ export type SlotGrilla = {
   disponible: boolean; // fn_cancha_disponible result
 };
 
+// ── Stock module ────────────────────────────────────────────────────────────
+
+export type Categoria = {
+  id: string;
+  nombre: string;
+  color: string;
+  orden: number;
+  activo: boolean;
+};
+
+export type Producto = {
+  id: string;
+  nombre: string;
+  categoria_id: string | null;
+  precio: number;
+  costo_con_iva: number | null;
+  costo_neto: number | null;
+  iva_alicuota_id: string | null;
+  stock_actual: number;
+  tiene_stock: boolean;
+  unidad: 'unidad' | 'kg' | 'litro';
+  activo: boolean;
+  created_at: string;
+  // joined
+  categoria?: Categoria | null;
+  iva_alicuota?: import("./facturacion/types").IvaAlicuota | null;
+  margen?: number | null; // derived: (precio - costo_neto) / precio * 100
+};
+
+export type CompraItem = {
+  id: string;
+  compra_id: string;
+  producto_id: string;
+  cantidad: number;
+  costo_con_iva: number;
+  iva_alicuota_id: string;
+  costo_neto: number;
+  // joined
+  producto?: Pick<Producto, 'id' | 'nombre'> | null;
+  iva_alicuota?: import("./facturacion/types").IvaAlicuota | null;
+};
+
+export type Compra = {
+  id: string;
+  fecha: string;
+  proveedor: string | null;
+  notas: string | null;
+  empleado_id: string | null;
+  created_at: string;
+  items?: CompraItem[];
+};
+
 export type {
   ConfigFacturacion,
   ConfigFacturacionRaw,
