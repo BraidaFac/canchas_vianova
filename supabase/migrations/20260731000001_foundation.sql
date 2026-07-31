@@ -99,3 +99,8 @@ INSERT INTO iva_alicuotas (nombre, porcentaje, predeterminada) VALUES
   ('21%',   21.00, true),
   ('10.5%', 10.50, false),
   ('Exento', 0.00, false);
+
+-- 7. Unique partial index: only one entidad_fiscal can be predeterminada at a time
+CREATE UNIQUE INDEX idx_entidades_fiscales_predeterminada
+  ON entidades_fiscales (predeterminada)
+  WHERE predeterminada = true;
