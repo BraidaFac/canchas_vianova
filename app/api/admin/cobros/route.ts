@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
   const supabase = await createSupabaseServerClient();
 
   // 1. Fetch all pagos with their comprobantes
+  // TODO: replace with server-side grouping RPC when data grows past 5000 pagos
   let pagosQuery = supabase
     .from("pagos")
     .select(`
@@ -41,7 +42,8 @@ export async function GET(request: NextRequest) {
       cuenta_bancaria:cuentas_bancarias(id, nombre_display, entidad_fiscal_id),
       comprobante:comprobantes(id, cae, estado, importe)
     `)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(5000);
 
   if (fromDate) pagosQuery = pagosQuery.gte("created_at", fromDate);
   if (toDate) pagosQuery = pagosQuery.lte("created_at", toDate + "T23:59:59Z");

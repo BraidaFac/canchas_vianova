@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
   // If setting predeterminada=true, unset all others first
   if (insert.predeterminada) {
-    await supabase.from("entidades_fiscales").update({ predeterminada: false }).neq("id", "00000000-0000-0000-0000-000000000000");
+    await supabase.from("entidades_fiscales").update({ predeterminada: false }).eq("predeterminada", true);
   }
 
   const { data, error } = await supabase

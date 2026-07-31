@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAfipClientDefault } from "@/lib/facturacion/afip-client";
 
@@ -8,7 +8,12 @@ function toDateInt(dateStr: string): number {
 
 // Called by Vercel Cron every 10 minutes.
 // Also callable manually by superadmin from UI.
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const supabase = await createSupabaseServerClient();
 
   const { data: pendientes } = await supabase
