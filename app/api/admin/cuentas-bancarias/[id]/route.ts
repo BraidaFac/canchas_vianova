@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
-
-async function requireSuperAdmin() {
-  const session = await getSession();
-  if (!session) return { error: "No autorizado", status: 401 as const };
-  if (session.rol !== "superadmin") return { error: "Requiere superadmin", status: 403 as const };
-  return { session };
-}
+import { requireSuperAdmin } from "@/lib/api-auth";
 
 export async function PATCH(
   request: NextRequest,
@@ -19,7 +12,7 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json();
 
-  const allowed = ["nombre_display", "banco", "cbu", "alias", "entidad_fiscal_id", "activo"] as const;
+  const allowed = ["nombre_display", "banco", "cbu", "alias", "entidad_fiscal_id", "activo", "activo_bot"] as const;
   const updates: Record<string, unknown> = {};
   for (const key of allowed) {
     if (key in body) updates[key] = body[key];
@@ -30,6 +23,15 @@ export async function PATCH(
   }
 
   const supabase = await createSupabaseServerClient();
+
+  // Enforce single activo_bot: unset all others before activating this one
+  if (updates.activo_bot === true) {
+    await supabase
+      .from("cuentas_bancarias")
+      .update({ activo_bot: false })
+      .eq("activo_bot", true)
+      .neq("id", id);
+  }
   const { data, error } = await supabase
     .from("cuentas_bancarias")
     .update(updates)

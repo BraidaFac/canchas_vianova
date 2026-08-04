@@ -3,7 +3,7 @@ export type CondicionIVA = "monotributo" | "responsable_inscripto";
 export type ModoAfip = "testing" | "produccion";
 export type MedioPago = "efectivo" | "transferencia" | "otro";
 export type OrigenTipo = "reserva" | "consumo";
-export type EstadoFiscal = "facturado" | "mixto" | "sin_comprobante";
+export type EstadoFiscal = "facturado" | "mixto" | "sin_comprobante" | "pendiente" | "fallida";
 
 // ─── Entidades Fiscales ──────────────────────────────────────────────────────
 
@@ -41,6 +41,7 @@ export type CuentaBancaria = {
   alias: string | null;
   entidad_fiscal_id: string;
   activo: boolean;
+  activo_bot: boolean;
   created_at: string;
   // joined
   entidad_fiscal?: Pick<EntidadFiscal, "id" | "nombre_interno" | "cuit"> | null;
@@ -123,6 +124,7 @@ export type CobroOrigen = {
   id: string;
   tipo: OrigenTipo;
   descripcion: string;    // e.g. "Reserva #R-001" or "Consumo"
+  subtitulo?: string | null; // e.g. items list for consumos, or linked reserva
   fecha: string;          // ISO date string
   total: number;          // sum of all pagos
   estado_fiscal: EstadoFiscal;

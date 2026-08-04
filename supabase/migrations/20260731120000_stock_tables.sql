@@ -28,7 +28,7 @@ CREATE TABLE producto_precios (
   producto_id uuid NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
   precio numeric NOT NULL,
   vigente_desde date NOT NULL DEFAULT CURRENT_DATE,
-  empleado_id uuid REFERENCES empleados(id),
+  empleado_id uuid REFERENCES admins(id),
   created_at timestamptz DEFAULT now()
 );
 
@@ -37,7 +37,7 @@ CREATE TABLE compras (
   fecha date NOT NULL DEFAULT CURRENT_DATE,
   proveedor text,
   notas text,
-  empleado_id uuid REFERENCES empleados(id),
+  empleado_id uuid REFERENCES admins(id),
   created_at timestamptz DEFAULT now()
 );
 

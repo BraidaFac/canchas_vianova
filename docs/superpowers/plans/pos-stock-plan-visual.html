@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan: POS + Stock + Extensión Facturación — Vía Nova</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1f2e;
+    --surface2: #222840;
+    --border: rgba(255,255,255,0.08);
+    --green: #133D34;
+    --green-light: #1a5247;
+    --cream: #C6B997;
+    --cream-dim: rgba(198,185,151,0.6);
+    --white: #f0f0f0;
+    --muted: rgba(240,240,240,0.45);
+    --blue: #3b82f6;
+    --blue-dim: rgba(59,130,246,0.15);
+    --amber: #f59e0b;
+    --amber-dim: rgba(245,158,11,0.15);
+    --emerald: #10b981;
+    --emerald-dim: rgba(16,185,129,0.12);
+    --rose: #f43f5e;
+    --rose-dim: rgba(244,63,94,0.12);
+    --purple: #8b5cf6;
+    --purple-dim: rgba(139,92,246,0.12);
+    --font: system-ui, -apple-system, sans-serif;
+    --mono: 'Fira Code', 'Cascadia Code', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--white); font-family: var(--font); font-size: 14px; line-height: 1.6; }
+
+  .page { max-width: 1100px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  /* Header */
+  .header { margin-bottom: 48px; border-bottom: 1px solid var(--border); padding-bottom: 32px; }
+  .header h1 { font-size: 28px; font-weight: 700; color: var(--cream); letter-spacing: -0.02em; margin-bottom: 6px; }
+  .header .meta { color: var(--muted); font-size: 13px; display: flex; gap: 20px; flex-wrap: wrap; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+  .badge-green { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(16,185,129,0.25); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(59,130,246,0.25); }
+  .badge-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+  .badge-purple { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(139,92,246,0.25); }
+  .badge-rose { background: var(--rose-dim); color: var(--rose); border: 1px solid rgba(244,63,94,0.25); }
+
+  /* Sections */
+  .section { margin-bottom: 48px; }
+  .section-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cream); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--white); }
+  h3 { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--cream); }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .card-grid { display: grid; gap: 16px; }
+  .card-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .card-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .card-grid-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 700px) {
+    .card-grid-2, .card-grid-3, .card-grid-4 { grid-template-columns: 1fr; }
+  }
+
+  /* Decision table */
+  .decision-table { width: 100%; border-collapse: collapse; }
+  .decision-table th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .decision-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .decision-table tr:last-child td { border-bottom: none; }
+  .decision-table td:first-child { color: var(--muted); font-size: 12px; width: 40px; }
+  .decision-table td:nth-child(2) { font-weight: 500; }
+  .decision-table td:nth-child(3) { color: var(--emerald); font-weight: 600; }
+  .decision-table td:nth-child(4) { color: var(--muted); font-size: 13px; }
+
+  /* Schema cards */
+  .schema-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .schema-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .schema-name { font-weight: 700; font-size: 13px; font-family: var(--mono); }
+  .schema-tag { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  .tag-new { background: var(--emerald-dim); color: var(--emerald); }
+  .tag-modified { background: var(--amber-dim); color: var(--amber); }
+  .tag-existing { background: rgba(255,255,255,0.06); color: var(--muted); }
+  .schema-body { padding: 14px 16px; }
+  .field-list { display: flex; flex-direction: column; gap: 4px; }
+  .field { display: flex; align-items: baseline; gap: 8px; font-size: 12px; }
+  .field-name { font-family: var(--mono); color: var(--cream-dim); min-width: 160px; }
+  .field-type { color: var(--blue); font-family: var(--mono); font-size: 11px; min-width: 80px; }
+  .field-note { color: var(--muted); font-size: 11px; }
+  .field-key { color: var(--amber); font-size: 10px; font-weight: 700; }
+  .field-fk { color: var(--purple); font-size: 10px; }
+  .field-highlight { background: rgba(16,185,129,0.08); border-left: 2px solid var(--emerald); padding-left: 8px; border-radius: 0 4px 4px 0; }
+
+  /* Flow diagram */
+  .flow { display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
+  .flow-node { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .flow-node-green { background: var(--green); border-color: var(--green-light); }
+  .flow-arrow { color: var(--muted); font-size: 16px; padding: 0 8px; }
+  .flow-arrow-down { display: flex; justify-content: center; color: var(--muted); padding: 6px 0; }
+
+  /* Module map */
+  .module { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+  .module-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .module-title { font-weight: 700; font-size: 15px; }
+  .module-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+  .module-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; }
+  .module-item::before { content: '→'; color: var(--cream-dim); margin-top: 1px; flex-shrink: 0; }
+
+  /* UI mockup */
+  .mockup { background: #1a1a2e; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .mockup-bar { background: #0f0f1a; padding: 10px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .mockup-body { padding: 0; }
+  .mockup-url { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-left: 8px; }
+
+  /* POS layout mockup */
+  .pos-layout { display: grid; grid-template-columns: 1fr 320px; height: 420px; }
+  .pos-catalog { padding: 16px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
+  .pos-cart { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .tab-bar { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tab { padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); color: var(--muted); }
+  .tab.active { background: var(--green); color: white; border-color: var(--green-light); }
+  .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; flex: 1; }
+  .product-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 8px; text-align: center; cursor: pointer; transition: border-color 0.15s; }
+  .product-card:hover { border-color: var(--green-light); }
+  .product-name { font-size: 11px; font-weight: 600; margin-bottom: 4px; }
+  .product-price { font-size: 12px; color: var(--cream); font-weight: 700; }
+  .product-badge { background: var(--green); color: white; border-radius: 99px; font-size: 9px; font-weight: 700; padding: 1px 5px; position: relative; top: -2px; margin-left: 4px; }
+  .cart-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  .cart-items { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .cart-item { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 6px 8px; background: var(--surface2); border-radius: 6px; }
+  .cart-item-name { color: var(--white); }
+  .cart-item-price { color: var(--cream); font-weight: 600; }
+  .cart-total { border-top: 1px solid var(--border); padding-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .cart-total-label { font-weight: 700; font-size: 13px; }
+  .cart-total-amount { font-size: 18px; font-weight: 800; color: var(--cream); }
+  .btn { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; }
+  .btn-primary { background: var(--green); color: white; width: 100%; padding: 10px; font-size: 13px; }
+  .toggle-view { display: flex; gap: 4px; padding: 3px; background: var(--surface2); border-radius: 6px; border: 1px solid var(--border); }
+  .toggle-icon { padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+  .toggle-icon.active { background: var(--green); }
+  .pos-topbar { display: flex; align-items: center; justify-content: space-between; }
+
+  /* Payment panel */
+  .pay-panel { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+  .pay-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .pay-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+  .pay-tag-cash { background: var(--emerald-dim); color: var(--emerald); }
+  .pay-tag-transfer { background: var(--blue-dim); color: var(--blue); }
+  .pay-input { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-size: 12px; color: var(--white); flex: 1; outline: none; }
+  .pay-select { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-size: 12px; color: var(--white); flex: 1; outline: none; appearance: none; }
+
+  /* Stock mockup */
+  .stock-table { width: 100%; border-collapse: collapse; }
+  .stock-table th { text-align: left; padding: 8px 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .stock-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .stock-table tr:last-child td { border-bottom: none; }
+  .stock-input { background: var(--green-light); border: 1px solid var(--green); border-radius: 4px; padding: 3px 8px; font-size: 12px; color: white; width: 70px; outline: none; }
+  .margin-chip { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+  .margin-good { background: var(--emerald-dim); color: var(--emerald); }
+  .margin-med { background: var(--amber-dim); color: var(--amber); }
+
+  /* Flow arrows */
+  .flow-full { display: flex; flex-direction: column; gap: 12px; }
+  .flow-row { display: flex; align-items: center; gap: 8px; }
+  .flow-box { padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 500; }
+  .flow-box-green { background: var(--emerald-dim); border: 1px solid rgba(16,185,129,0.3); color: var(--emerald); }
+  .flow-box-blue { background: var(--blue-dim); border: 1px solid rgba(59,130,246,0.3); color: var(--blue); }
+  .flow-box-amber { background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.3); color: var(--amber); }
+  .flow-box-purple { background: var(--purple-dim); border: 1px solid rgba(139,92,246,0.3); color: var(--purple); }
+  .flow-box-gray { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); }
+  .arrow { color: var(--muted); font-size: 14px; }
+  .arrow-down { text-align: center; color: var(--muted); font-size: 14px; }
+
+  /* API table */
+  .api-table { width: 100%; border-collapse: collapse; }
+  .api-table th { text-align: left; padding: 8px 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .api-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .api-table tr:last-child td { border-bottom: none; }
+  .method { font-family: var(--mono); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+  .method-get { background: rgba(16,185,129,0.15); color: var(--emerald); }
+  .method-post { background: rgba(59,130,246,0.15); color: var(--blue); }
+  .method-patch { background: rgba(245,158,11,0.15); color: var(--amber); }
+  .method-delete { background: rgba(244,63,94,0.15); color: var(--rose); }
+  .endpoint { font-family: var(--mono); font-size: 12px; color: var(--cream-dim); }
+  .group-header td { background: rgba(255,255,255,0.03); color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; padding: 10px 12px 6px; border-bottom: 1px solid var(--border); }
+
+  /* Metrics */
+  .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 700px) { .metric-grid { grid-template-columns: 1fr; } }
+  .metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .metric-name { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .metric-formula { font-family: var(--mono); font-size: 11px; color: var(--cream); background: var(--surface2); padding: 6px 10px; border-radius: 6px; margin-top: 6px; }
+
+  /* Timeline */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .timeline-item { display: flex; gap: 16px; }
+  .timeline-left { display: flex; flex-direction: column; align-items: center; }
+  .timeline-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .timeline-line { width: 1px; background: var(--border); flex: 1; margin: 4px 0; min-height: 20px; }
+  .timeline-content { padding-bottom: 24px; flex: 1; }
+  .timeline-phase { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .timeline-tasks { color: var(--muted); font-size: 12px; }
+  .dot-green { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(16,185,129,0.4); }
+  .dot-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(59,130,246,0.4); }
+  .dot-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.4); }
+  .dot-purple { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(139,92,246,0.4); }
+  .dot-rose { background: var(--rose-dim); color: var(--rose); border: 1px solid rgba(244,63,94,0.4); }
+
+  /* TOC */
+  .toc { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 48px; }
+  .toc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; }
+  .toc-item { font-size: 13px; color: var(--cream-dim); display: flex; align-items: center; gap: 8px; }
+  .toc-num { font-size: 10px; font-weight: 700; color: var(--muted); width: 20px; }
+
+  code { font-family: var(--mono); background: var(--surface2); padding: 1px 5px; border-radius: 4px; font-size: 11px; color: var(--cream-dim); }
+
+  .divider { height: 1px; background: var(--border); margin: 32px 0; }
+
+  .note { background: var(--blue-dim); border: 1px solid rgba(59,130,246,0.2); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: var(--blue); }
+  .note-amber { background: var(--amber-dim); border-color: rgba(245,158,11,0.2); color: var(--amber); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+      <div style="width:36px;height:36px;background:#133D34;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;">🏗️</div>
+      <h1>POS + Stock + Extensión Facturación</h1>
+    </div>
+    <div class="meta">
+      <span>Vía Nova Admin</span>
+      <span>·</span>
+      <span>2026-07-31</span>
+      <span>·</span>
+      <span class="badge badge-green">✓ Diseño aprobado</span>
+      <span class="badge badge-amber">⏳ Pendiente implementación</span>
+    </div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="section-title">Contenido</div>
+    <div class="toc-grid">
+      <div class="toc-item"><span class="toc-num">01</span> Decisiones de arquitectura</div>
+      <div class="toc-item"><span class="toc-num">02</span> Modelo de datos completo</div>
+      <div class="toc-item"><span class="toc-num">03</span> Flujo de pagos split</div>
+      <div class="toc-item"><span class="toc-num">04</span> UI: Punto de Venta (POS)</div>
+      <div class="toc-item"><span class="toc-num">05</span> UI: Stock</div>
+      <div class="toc-item"><span class="toc-num">06</span> Cambios en Facturación</div>
+      <div class="toc-item"><span class="toc-num">07</span> APIs nuevas</div>
+      <div class="toc-item"><span class="toc-num">08</span> Métricas habilitadas</div>
+      <div class="toc-item"><span class="toc-num">09</span> Plan de implementación</div>
+      <div class="toc-item"><span class="toc-num">10</span> Archivos a crear/modificar</div>
+    </div>
+  </div>
+
+  <!-- 01. Decisiones -->
+  <div class="section">
+    <div class="section-title">01 — Decisiones de arquitectura</div>
+    <div class="card">
+      <table class="decision-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Decisión</th>
+            <th>Elección</th>
+            <th>Razón</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Vista financiera</td>
+            <td>Sección <strong>Cobros</strong> — nueva</td>
+            <td>Todos los ingresos agrupados por reserva/consumo, expandibles a pagos individuales. Muestra efectivo + transferencia.</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Vista fiscal</td>
+            <td>Sección <strong>Comprobantes</strong> — sin cambio conceptual</td>
+            <td>Solo documentos ARCA con CAE. "Comprobante" = factura fiscal, no mezclar con cobros en efectivo.</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Pagos split (efectivo + transfer)</td>
+            <td>Tabla <code>pagos</code> polimórfica</td>
+            <td>Una reserva puede tener N pagos. La emisión de factura siempre parte de un <code>pago_id</code> con <code>medio_pago='transferencia'</code>.</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Multi-entidad fiscal</td>
+            <td><code>config_facturacion</code> → <code>entidades_fiscales</code> multi-row</td>
+            <td>Los datos actuales son de testing; migración limpia sin deuda técnica. Campo <code>predeterminada</code> para la entidad por defecto.</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>POS UI</td>
+            <td>Dos vistas alternables (Grid / Lista)</td>
+            <td>Cada empleado elige la que le resulta más cómoda. Toggle persistido en <code>localStorage</code>.</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Módulos deshabilitables</td>
+            <td>Tabla <code>config_modulos</code> — fila única con bools</td>
+            <td>Igual al patrón de <code>facturacion</code>. El sidebar oculta módulos con flag <code>false</code>. Toggles en Configuración (superadmin).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 02. Modelo de datos -->
+  <div class="section">
+    <div class="section-title">02 — Modelo de datos</div>
+
+    <div style="margin-bottom:12px;" class="note note-amber">
+      ⚠️ <strong>Migración requerida:</strong> La tabla <code>config_facturacion</code> (fila única) se convierte en <code>entidades_fiscales</code> (multi-row). La fila existente se migra automáticamente.
+    </div>
+
+    <h3 style="margin-bottom:12px;margin-top:20px;">Facturación — tablas modificadas y nuevas</h3>
+    <div class="card-grid card-grid-2" style="margin-bottom:20px;">
+      <div class="schema-card">
+        <div class="schema-header">
+          <span class="schema-name">entidades_fiscales</span>
+          <span class="schema-tag tag-modified">RENAME + multi-row</span>
+        </div>
+        <div class="schema-body">
+          <div class="field-list">
+            <div class="field field-highlight"><span class="field-name">id</span><span class="field-type">uuid PK</span></div>
+            <div class="field field-highlight"><span class="field-name">nombre_interno</span><span class="field-type">text</span><span class="field-note">ej: "Galicia - Pepe"</span></div>
+            <div class="field"><span class="field-name">cuit</span><span class="field-type">text</span></div>
+            <div class="field"><span class="field-name">razon_social</span><span class="field-type">text</span></div>
+            <div class="field"><span class="field-name">condicion_iva</span><span class="field-type">text</span></div>
+            <div class="field"><span class="field-name">punto_venta</span><span class="field-type">int</span></div>
+            <div class="field"><span class="field-name">cert_encrypted</span><span class="field-type">text</span></div>
+            <div class="field"><span class="field-name">key_encrypted</span><span class="field-type">text</span></div>
+            <div class="field"><span class="field-name">modo</span><span class="field-type">text</span><span class="field-note">testing|produccion</span></div>
+            <div class="field"><span class="field-name">activo</span><span class="field-type">bool</span></div>
+            <div class="field field-highlight"><span class="field-name">predeterminada</span><span class="field-type">bool</span><span class="field-note">solo una = true</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-header">
+          <span class="schema-name">cuentas_bancarias</span>
+          <span class="schema-tag tag-new">NUEVA</span>
+        </div>
+        <div class="schema-body">
+          <div class="field-list">
+            <div class="field"><span class="field-name">id</span><span class="field-type">uuid PK</span></div>
+            <div class="field"><span class="field-name">nombre_display</span><span class="field-type">text</span><span class="field-note">ej: "Galicia - Pepe García"</span></div>
+            <div class="field"><span class="field-name">banco</span><span class="field-type">text</span></div>
+            <div class="field"><span class="field-name">cbu</span><span class="field-type">text</span></div>
+            <div class="field"><span class="field-name">alias</span><span class="field-type">text</span></div>
+            <div class="field field-highlight"><span class="field-name">entidad_fiscal_id</span><span class="field-type">uuid</span><span class="field-fk">FK → entidades_fiscales</span></div>
+            <div class="field"><span class="field-name">activo</span><span class="field-type">bool</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-header">
+          <span class="schema-name">pagos</span>
+          <span class="schema-tag tag-new">NUEVA — polimórfica</span>
+        </div>
+        <div class="schema-body">
+          <div class="field-list">
+            <div class="field"><span class="field-name">id</span><span class="field-type">uuid PK</span></div>
+            <div class="field field-highlight"><span class="field-name">origen_tipo</span><span class="field-type">text</span><span class="field-note">'reserva' | 'consumo'</span></div>
+            <div class="field field-highlight"><span class="field-name">origen_id</span><span class="field-type">uuid</span><span class="field-note">FK → reservas o consumos</span></div>
+            <div class="field field-highlight"><span class="field-name">medio_pago</span><span class="field-type">text</span><span class="field-note">'efectivo'|'transferencia'|'otro'</span></div>
+            <div class="field"><span class="field-name">monto</span><span class="field-type">numeric</span></div>
+            <div class="field field-highlight"><span class="field-name">cuenta_bancaria_id</span><span class="field-type">uuid?</span><span class="field-fk">FK → cuentas_bancarias</span><span class="field-note">solo si transfer</span></div>
+            <div class="field"><span class="field-name">empleado_id</span><span class="field-type">uuid</span><span class="field-fk">FK → empleados</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-header">
+          <span class="schema-name">comprobantes</span>
+          <span class="schema-tag tag-modified">MODIFICADA</span>
+        </div>
+        <div class="schema-body">
+          <div class="field-list">
+            <div class="field"><span class="field-name">id, tipo_cbte, nro_cbte...</span><span class="field-note">igual que antes</span></div>
+            <div class="field field-highlight"><span class="field-name">pago_id</span><span class="field-type">uuid</span><span class="field-fk">FK → pagos</span><span class="field-note">reemplaza reserva_id</span></div>
+            <div class="field field-highlight"><span class="field-name">origen_tipo</span><span class="field-type">text</span><span class="field-note">'reserva' | 'consumo'</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom:12px;margin-top:24px;">POS y Stock — tablas nuevas</h3>
+    <div class="card-grid card-grid-3" style="margin-bottom:20px;">
+      <div class="schema-card">
+        <div class="schema-header">
+          <span class="schema-name">iva_alicuotas</span>
+          <span class="schema-tag tag-new">NUEVA</span>
+        </div>
+        <div class="schema-body">
+          <div class="field-list">
+            <div class="field"><span class="field-name">id</span><span class="field-type">uuid PK</span></div>
+            <div class="field"><span class="field-name">nombre</span><span class="field-type">text</span><span class="field-note">"21%", "10.5%", "Exento"</span></div>
+            <div class="field"><span class="field-name">porcentaje</span><span class="field-type">numeric</span><span class="field-note">21.00 / 10.50 / 0.00</span></div>
+            <div class="field"><span class="field-name">predeterminada</span><span class="field-type">bool</span><span class="field-note">21% por defecto</span></div>
+            <div class="field"><span class="field-name">activo</span><span class="field-type">bool</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-header">
+          <span class="schema-name">categorias</span>
+          <span class="schema-tag tag-new">NUEVA</span>
+        </div>
+        <div class="schema-body">
+          <div class="field-list">
+            <div class="field"><span class="field-name">id</span><span class="field-type">uuid PK</span></div>
+            <div class="field"><span class="field-name">nombre</span><span class="field-type">text</span></div>
+            <div class="field"><span class="field-name">color</span><span class="field-type">text</span><span class="field-note">hex para badge</span></div>
+            <div class="field"><span class="field-name">orden</span><span class="field-type">int</span></div>
+            <div class="field"><span class="field-name">activo</span><span class="field-type">bool</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-header">
+          <span class="schema-name">productos</span>
+          <span class="schema-tag tag-new">NUEVA</span>
+        </div>
+        <div class="schema-body">
+          <div class="field-list">
+            <div class="field"><span class="field-name">id</span><span class="field-type">uuid PK</span></div>
+            <div class="field"><span class="field-name">nombre</span><span class="field-type">text</span></div>
+            <div class="field"><span class="field-name">categoria_id</span><span class="field-type">uuid</span><span class="field-fk">FK → categorias</span></div>
+            <div class="field"><span class="field-name">precio</span><span class="field-type">numeric</span><span class="field-note">precio venta vigente</span></div>
+            <div class="field"><span class="field-name">costo_con_iva</span><span class="field-type">numeric</span><span class="field-note">último costo del proveedor</span></div>
+            <div class="field"><span class="field-name">costo_neto</span><span class="field-type">numeric</span><span class="field-note">derivado automático</span></div>
+            <div class="field"><span class="field-name">iva_alicuota_id</span><span class="field-type">uuid</span><span class="field-fk">FK → iva_alicuotas</span></div>
+            <div class="field"><span class="field-name">stock_actual</span><span class="field-type">int</span></div>
+            <div class="field"><span class="field-name">tiene_stock</span><span class="field-type">bool</span><span class="field-note">false = amenities sin límite</span></div>
+            <div class="field"><span class="field-name">unidad</span><span class="field-type">text</span><span class="field-note">unidad | kg | litro</span></div>
+            <div class="field"><span class="field-name">activo</span><span class="field-type">bool</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-header">
+          <span class="schema-name">producto_precios</span>
+          <span class="schema-tag tag-new">NUEVA — historial</span>
+        </div>
+        <div class="schema-body">
+          <div class="field-list">
+            <div class="field"><span class="field-name">id</span><span class="field-type">uuid PK</span></div>
+            <div class="field"><span class="field-name">producto_id</span><span class="field-type">uuid</span><span class="field-fk">FK → productos</span></div>
+            <div class="field"><span class="field-name">precio</span><span class="field-type">numeric</span><span class="field-note">precio de venta en ese momento</span></div>
+            <div class="field"><span class="field-name">vigente_desde</span><span class="field-type">date</span></div>
+            <div class="field"><span class="field-name">empleado_id</span><span class="field-type">uuid</span><span class="field-fk">FK → empleados</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-header">
+          <span class="schema-name">consumos</span>
+          <span class="schema-tag tag-new">NUEVA — sesión POS</span>
+        </div>
+        <div class="schema-body">
+          <div class="field-list">
+            <div class="field"><span class="field-name">id</span><span class="field-type">uuid PK</span></div>
+            <div class="field"><span class="field-name">reserva_id</span><span class="field-type">uuid?</span><span class="field-note">opcional, asociar a cancha</span></div>
+            <div class="field"><span class="field-name">empleado_id</span><span class="field-type">uuid</span><span class="field-fk">FK → empleados</span></div>
+            <div class="field"><span class="field-name">total</span><span class="field-type">numeric</span></div>
+            <div class="field"><span class="field-name">notas</span><span class="field-type">text</span></div>
+            <div class="field"><span class="field-name">created_at</span><span class="field-type">timestamptz</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-header">
+          <span class="schema-name">consumo_items</span>
+          <span class="schema-tag tag-new">NUEVA</span>
+        </div>
+        <div class="schema-body">
+          <div class="field-list">
+            <div class="field"><span class="field-name">consumo_id</span><span class="field-type">uuid</span><span class="field-fk">FK → consumos</span></div>
+            <div class="field"><span class="field-name">producto_id</span><span class="field-type">uuid</span><span class="field-fk">FK → productos</span></div>
+            <div class="field"><span class="field-name">cantidad</span><span class="field-type">int</span></div>
+            <div class="field"><span class="field-name">precio_unitario</span><span class="field-type">numeric</span><span class="field-note">snapshot al momento de venta</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-grid card-grid-2">
+      <div class="schema-card">
+        <div class="schema-header">
+          <span class="schema-name">compras</span>
+          <span class="schema-tag tag-new">NUEVA — compras al proveedor</span>
+        </div>
+        <div class="schema-body">
+          <div class="field-list">
+            <div class="field"><span class="field-name">id</span><span class="field-type">uuid PK</span></div>
+            <div class="field"><span class="field-name">fecha</span><span class="field-type">date</span></div>
+            <div class="field"><span class="field-name">proveedor</span><span class="field-type">text</span></div>
+            <div class="field"><span class="field-name">notas</span><span class="field-type">text</span></div>
+            <div class="field"><span class="field-name">empleado_id</span><span class="field-type">uuid</span><span class="field-fk">FK → empleados</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-header">
+          <span class="schema-name">compra_items</span>
+          <span class="schema-tag tag-new">NUEVA</span>
+        </div>
+        <div class="schema-body">
+          <div class="field-list">
+            <div class="field"><span class="field-name">compra_id</span><span class="field-type">uuid</span><span class="field-fk">FK → compras</span></div>
+            <div class="field"><span class="field-name">producto_id</span><span class="field-type">uuid</span><span class="field-fk">FK → productos</span></div>
+            <div class="field"><span class="field-name">cantidad</span><span class="field-type">int</span></div>
+            <div class="field field-highlight"><span class="field-name">costo_con_iva</span><span class="field-type">numeric</span><span class="field-note">lo que ingresa el usuario</span></div>
+            <div class="field"><span class="field-name">iva_alicuota_id</span><span class="field-type">uuid</span><span class="field-fk">FK → iva_alicuotas</span></div>
+            <div class="field field-highlight"><span class="field-name">costo_neto</span><span class="field-type">numeric</span><span class="field-note">costo_con_iva / (1 + iva%)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03. Flujo de pagos + Cobros -->
+  <div class="section">
+    <div class="section-title">03 — Flujo de pagos + sección Cobros</div>
+
+    <div class="note" style="margin-bottom:20px;">
+      <strong>Dos secciones distintas:</strong> <strong>Cobros</strong> = vista financiera completa (todos los ingresos). <strong>Comprobantes</strong> = solo documentos fiscales ARCA con CAE.
+    </div>
+
+    <div class="card-grid card-grid-2" style="margin-bottom:24px;">
+      <div>
+        <h3 style="margin-bottom:14px;">Escenario: pago mixto en reserva</h3>
+        <div class="flow-full">
+          <div class="flow-row">
+            <div class="flow-box flow-box-gray" style="flex:1">Reserva $5.000 → marcar cobrada</div>
+          </div>
+          <div class="arrow-down">↓</div>
+          <div class="flow-row" style="gap:8px;">
+            <div class="flow-box flow-box-gray" style="flex:1;">Efectivo $2.000</div>
+            <div class="flow-box flow-box-blue" style="flex:1;">Transferencia $3.000<br><small>cuenta: Galicia - Pepe</small></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+            <div class="arrow-down">↓</div>
+            <div class="arrow-down">↓</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div class="flow-box flow-box-gray" style="text-align:center;font-size:11px;">pago en <code>pagos</code><br>sin comprobante fiscal</div>
+            <div class="flow-box flow-box-green" style="text-align:center;font-size:11px;">emitirFactura()<br>entidad: Pepe García<br>monto: $3.000 → CAE</div>
+          </div>
+          <div class="arrow-down">↓</div>
+          <div class="flow-box flow-box-purple" style="text-align:center;font-size:11px;">Cobros: 1 fila agrupada "Mixto"<br>expandible → 2 sub-filas</div>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:14px;">Escenario: 100% efectivo</h3>
+        <div class="flow-full">
+          <div class="flow-row">
+            <div class="flow-box flow-box-gray" style="flex:1">Reserva $5.000 → marcar cobrada</div>
+          </div>
+          <div class="arrow-down">↓</div>
+          <div class="flow-row">
+            <div class="flow-box flow-box-gray" style="flex:1;">Efectivo $5.000</div>
+          </div>
+          <div class="arrow-down">↓</div>
+          <div class="flow-box flow-box-gray" style="text-align:center;font-size:11px;">pago en <code>pagos</code> sin comprobante ARCA</div>
+          <div class="arrow-down">↓</div>
+          <div class="flow-box flow-box-purple" style="text-align:center;font-size:11px;">Cobros: 1 fila "Sin comprobante"<br>NO aparece en Comprobantes</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom:14px;">Vista Cobros — filas agrupadas expandibles</h3>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-weight:700;font-size:14px;">Cobros</span>
+        <span style="font-size:11px;color:var(--muted);">Todos los ingresos · julio 2026</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:8px 16px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);width:24px;"></th>
+            <th style="text-align:left;padding:8px 12px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);">Origen</th>
+            <th style="text-align:left;padding:8px 12px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);">Fecha</th>
+            <th style="text-align:right;padding:8px 12px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);">Total</th>
+            <th style="text-align:left;padding:8px 12px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);">Estado fiscal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Row agrupador cerrada -->
+          <tr style="cursor:pointer;">
+            <td style="padding:10px 16px;color:var(--muted);font-size:12px;">▶</td>
+            <td style="padding:10px 12px;font-size:13px;font-weight:500;">Reserva #R-001 <span style="font-size:11px;color:var(--muted);">· Cancha 3</span></td>
+            <td style="padding:10px 12px;font-size:12px;color:var(--muted);">31/07</td>
+            <td style="padding:10px 12px;text-align:right;font-weight:700;color:var(--cream);">$5.000</td>
+            <td style="padding:10px 12px;"><span style="background:rgba(245,158,11,0.15);color:var(--amber);padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;">Mixto</span></td>
+          </tr>
+          <!-- Row agrupador expandida -->
+          <tr style="background:rgba(255,255,255,0.02);">
+            <td style="padding:10px 16px;color:var(--muted);font-size:12px;">▼</td>
+            <td style="padding:10px 12px;font-size:13px;font-weight:500;">Reserva #R-002 <span style="font-size:11px;color:var(--muted);">· Cancha 1</span></td>
+            <td style="padding:10px 12px;font-size:12px;color:var(--muted);">31/07</td>
+            <td style="padding:10px 12px;text-align:right;font-weight:700;color:var(--cream);">$5.000</td>
+            <td style="padding:10px 12px;"><span style="background:var(--emerald-dim);color:var(--emerald);padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;">✓ Facturado</span></td>
+          </tr>
+          <!-- Sub-fila transfer -->
+          <tr style="background:rgba(255,255,255,0.015);">
+            <td style="padding:6px 16px;"></td>
+            <td colspan="2" style="padding:6px 12px 6px 28px;font-size:12px;color:var(--muted);">
+              <span style="background:var(--blue-dim);color:var(--blue);padding:1px 8px;border-radius:4px;font-size:10px;font-weight:700;margin-right:8px;">Transferencia</span>
+              $5.000 · Galicia - Pepe García
+            </td>
+            <td style="padding:6px 12px;text-align:right;font-size:12px;color:var(--muted);">$5.000</td>
+            <td style="padding:6px 12px;">
+              <span style="background:var(--emerald-dim);color:var(--emerald);padding:1px 8px;border-radius:4px;font-size:10px;font-weight:700;">CAE 73128...</span>
+              <span style="color:var(--blue);font-size:11px;margin-left:8px;cursor:pointer;">ver →</span>
+            </td>
+          </tr>
+          <!-- Row sin comprobante -->
+          <tr>
+            <td style="padding:10px 16px;color:var(--muted);font-size:12px;">▼</td>
+            <td style="padding:10px 12px;font-size:13px;font-weight:500;">Reserva #R-003 <span style="font-size:11px;color:var(--muted);">· Cancha 2</span></td>
+            <td style="padding:10px 12px;font-size:12px;color:var(--muted);">31/07</td>
+            <td style="padding:10px 12px;text-align:right;font-weight:700;color:var(--cream);">$3.000</td>
+            <td style="padding:10px 12px;"><span style="background:rgba(255,255,255,0.06);color:var(--muted);padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;">Sin comprobante</span></td>
+          </tr>
+          <!-- Sub-fila efectivo -->
+          <tr style="background:rgba(255,255,255,0.015);">
+            <td style="padding:6px 16px;border-bottom:1px solid var(--border);"></td>
+            <td colspan="2" style="padding:6px 12px 6px 28px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);">
+              <span style="background:rgba(255,255,255,0.08);color:var(--muted);padding:1px 8px;border-radius:4px;font-size:10px;font-weight:700;margin-right:8px;">Efectivo</span>
+              $3.000
+            </td>
+            <td style="padding:6px 12px;text-align:right;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);">$3.000</td>
+            <td style="padding:6px 12px;border-bottom:1px solid var(--border);"><span style="color:var(--muted);font-size:11px;">—</span></td>
+          </tr>
+          <!-- Row consumo mixto -->
+          <tr style="background:rgba(255,255,255,0.02);">
+            <td style="padding:10px 16px;color:var(--muted);font-size:12px;">▼</td>
+            <td style="padding:10px 12px;font-size:13px;font-weight:500;">Consumo #C-001 <span style="font-size:11px;color:var(--muted);">· POS</span></td>
+            <td style="padding:10px 12px;font-size:12px;color:var(--muted);">31/07</td>
+            <td style="padding:10px 12px;text-align:right;font-weight:700;color:var(--cream);">$1.600</td>
+            <td style="padding:10px 12px;"><span style="background:rgba(245,158,11,0.15);color:var(--amber);padding:2px 10px;border-radius:99px;font-size:11px;font-weight:600;">Mixto</span></td>
+          </tr>
+          <tr style="background:rgba(255,255,255,0.015);">
+            <td style="padding:6px 16px;"></td>
+            <td colspan="2" style="padding:6px 12px 6px 28px;font-size:12px;color:var(--muted);">
+              <span style="background:var(--blue-dim);color:var(--blue);padding:1px 8px;border-radius:4px;font-size:10px;font-weight:700;margin-right:8px;">Transferencia</span>$800 · Galicia
+            </td>
+            <td style="padding:6px 12px;text-align:right;font-size:12px;color:var(--muted);">$800</td>
+            <td style="padding:6px 12px;"><span style="background:var(--emerald-dim);color:var(--emerald);padding:1px 8px;border-radius:4px;font-size:10px;font-weight:700;">CAE 88214...</span></td>
+          </tr>
+          <tr style="background:rgba(255,255,255,0.015);">
+            <td style="padding:6px 16px;border-bottom:1px solid var(--border);"></td>
+            <td colspan="2" style="padding:6px 12px 6px 28px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);">
+              <span style="background:rgba(255,255,255,0.08);color:var(--muted);padding:1px 8px;border-radius:4px;font-size:10px;font-weight:700;margin-right:8px;">Efectivo</span>$800
+            </td>
+            <td style="padding:6px 12px;text-align:right;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);">$800</td>
+            <td style="padding:6px 12px;border-bottom:1px solid var(--border);"><span style="color:var(--muted);font-size:11px;">—</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 04. POS UI -->
+  <div class="section">
+    <div class="section-title">04 — UI: Punto de Venta (POS)</div>
+
+    <h3 style="margin-bottom:14px;">Vista Grid (default) — /admin/pos</h3>
+    <div class="mockup" style="margin-bottom:24px;">
+      <div class="mockup-bar">
+        <div class="mockup-dot" style="background:#ff5f57;"></div>
+        <div class="mockup-dot" style="background:#ffbd2e;"></div>
+        <div class="mockup-dot" style="background:#28c840;"></div>
+        <span class="mockup-url">/admin/pos</span>
+      </div>
+      <div class="pos-layout">
+        <div class="pos-catalog">
+          <div class="pos-topbar">
+            <span style="font-weight:700;font-size:13px;">Punto de Venta</span>
+            <div class="toggle-view">
+              <div class="toggle-icon active" title="Vista Grid">⊞</div>
+              <div class="toggle-icon" title="Vista Lista">≡</div>
+            </div>
+          </div>
+          <div class="tab-bar">
+            <div class="tab active">Todos</div>
+            <div class="tab">🥤 Bebidas</div>
+            <div class="tab">🍕 Snacks</div>
+            <div class="tab">🍖 Comidas</div>
+            <div class="tab">🔥 Amenities</div>
+          </div>
+          <div class="product-grid">
+            <div class="product-card">
+              <div class="product-name">Coca Cola<span class="product-badge">2</span></div>
+              <div class="product-price">$800</div>
+            </div>
+            <div class="product-card">
+              <div class="product-name">Agua 500ml</div>
+              <div class="product-price">$400</div>
+            </div>
+            <div class="product-card">
+              <div class="product-name">Fernet c/Cola</div>
+              <div class="product-price">$1.200</div>
+            </div>
+            <div class="product-card">
+              <div class="product-name">Empanada</div>
+              <div class="product-price">$350</div>
+            </div>
+            <div class="product-card">
+              <div class="product-name">Parrilla<span class="product-badge">1</span></div>
+              <div class="product-price">$3.500</div>
+            </div>
+            <div class="product-card">
+              <div class="product-name">Cerveza</div>
+              <div class="product-price">$900</div>
+            </div>
+          </div>
+        </div>
+        <div class="pos-cart">
+          <div class="cart-label">Pedido</div>
+          <div class="cart-items">
+            <div class="cart-item">
+              <div><span class="cart-item-name">Coca Cola</span> <span style="color:var(--muted);font-size:11px;">×2</span></div>
+              <div class="cart-item-price">$1.600</div>
+            </div>
+            <div class="cart-item">
+              <div><span class="cart-item-name">Parrilla</span> <span style="color:var(--muted);font-size:11px;">×1</span></div>
+              <div class="cart-item-price">$3.500</div>
+            </div>
+          </div>
+          <div class="cart-total">
+            <span class="cart-total-label">Total</span>
+            <span class="cart-total-amount">$5.100</span>
+          </div>
+          <div class="pay-panel">
+            <div class="pay-row">
+              <span class="pay-tag pay-tag-cash">Efectivo</span>
+              <input class="pay-input" placeholder="$0" value="$1.100">
+            </div>
+            <div class="pay-row">
+              <span class="pay-tag pay-tag-transfer">Transfer.</span>
+              <input class="pay-input" placeholder="$0" value="$4.000">
+            </div>
+            <div class="pay-row" style="margin-bottom:0">
+              <span style="font-size:11px;color:var(--muted);">Cuenta:</span>
+              <select class="pay-select"><option>Galicia - Pepe García</option></select>
+            </div>
+          </div>
+          <button class="btn btn-primary">✓ Confirmar venta</button>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-bottom:14px;">Vista Lista — toggle alternativo</h3>
+    <div class="card" style="padding:16px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <input style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--white);font-size:13px;outline:none;" placeholder="🔍  Buscar producto..." value="cer">
+        <div class="toggle-view">
+          <div class="toggle-icon" title="Vista Grid">⊞</div>
+          <div class="toggle-icon active" title="Vista Lista">≡</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:6px 10px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);">Producto</th>
+            <th style="text-align:left;padding:6px 10px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);">Cat.</th>
+            <th style="text-align:right;padding:6px 10px;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);">Precio</th>
+            <th style="padding:6px 10px;border-bottom:1px solid var(--border);"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:8px 10px;font-size:13px;border-bottom:1px solid var(--border);">Cerveza</td>
+            <td style="padding:8px 10px;border-bottom:1px solid var(--border);"><span style="background:rgba(59,130,246,0.15);color:var(--blue);padding:2px 8px;border-radius:4px;font-size:11px;">Bebidas</span></td>
+            <td style="padding:8px 10px;text-align:right;font-weight:600;color:var(--cream);font-size:13px;border-bottom:1px solid var(--border);">$900</td>
+            <td style="padding:8px 10px;border-bottom:1px solid var(--border);"><button style="background:var(--green);color:white;border:none;border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;">+</button></td>
+          </tr>
+          <tr>
+            <td style="padding:8px 10px;font-size:13px;">Fernet c/Cola</td>
+            <td style="padding:8px 10px;"><span style="background:rgba(59,130,246,0.15);color:var(--blue);padding:2px 8px;border-radius:4px;font-size:11px;">Bebidas</span></td>
+            <td style="padding:8px 10px;text-align:right;font-weight:600;color:var(--cream);font-size:13px;">$1.200</td>
+            <td style="padding:8px 10px;"><button style="background:var(--green);color:white;border:none;border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;">+</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:11px;color:var(--muted);margin-top:8px;">2 resultados para "cer"</p>
+    </div>
+  </div>
+
+  <!-- 05. Stock UI -->
+  <div class="section">
+    <div class="section-title">05 — UI: Stock</div>
+    <h3 style="margin-bottom:14px;">Tab Productos — modo edición rápida activo</h3>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;gap:12px;">
+          <span style="font-size:13px;font-weight:700;padding-bottom:2px;border-bottom:2px solid var(--cream);color:var(--cream);">Productos</span>
+          <span style="font-size:13px;color:var(--muted);cursor:pointer;">Categorías</span>
+          <span style="font-size:13px;color:var(--muted);cursor:pointer;">Compras</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn" style="background:var(--green);color:white;font-size:12px;">✏️ Edición rápida</button>
+          <button class="btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--white);font-size:12px;">+ Producto</button>
+        </div>
+      </div>
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Precio venta</th>
+            <th>Costo c/IVA</th>
+            <th>Margen</th>
+            <th>Stock</th>
+            <th>Activo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Coca Cola 500ml</td>
+            <td><span style="background:rgba(59,130,246,0.15);color:var(--blue);padding:2px 8px;border-radius:4px;font-size:11px;">Bebidas</span></td>
+            <td><input class="stock-input" value="$800"></td>
+            <td><input class="stock-input" value="$350"></td>
+            <td><span class="margin-chip margin-good">56%</span></td>
+            <td><input class="stock-input" value="24"></td>
+            <td><span class="badge badge-green">Sí</span></td>
+          </tr>
+          <tr>
+            <td>Empanada carne</td>
+            <td><span style="background:rgba(245,158,11,0.15);color:var(--amber);padding:2px 8px;border-radius:4px;font-size:11px;">Comidas</span></td>
+            <td><input class="stock-input" value="$350"></td>
+            <td><input class="stock-input" value="$180"></td>
+            <td><span class="margin-chip margin-med">49%</span></td>
+            <td><input class="stock-input" value="8"></td>
+            <td><span class="badge badge-green">Sí</span></td>
+          </tr>
+          <tr>
+            <td>Parrilla grande</td>
+            <td><span style="background:rgba(139,92,246,0.15);color:var(--purple);padding:2px 8px;border-radius:4px;font-size:11px;">Amenities</span></td>
+            <td><input class="stock-input" value="$3500"></td>
+            <td><input class="stock-input" value="—"></td>
+            <td><span class="margin-chip" style="background:rgba(255,255,255,0.06);color:var(--muted);">—</span></td>
+            <td style="color:var(--muted);font-size:12px;">sin stock</td>
+            <td><span class="badge badge-green">Sí</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="padding:10px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);">
+        Enter o click fuera para guardar. Cambio de precio genera historial automáticamente.
+      </div>
+    </div>
+
+    <h3 style="margin-bottom:14px;margin-top:24px;">Tab Compras — registrar compra</h3>
+    <div class="card" style="padding:16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Fecha</div>
+          <input style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--white);font-size:12px;outline:none;" value="2026-07-31">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Proveedor</div>
+          <input style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--white);font-size:12px;outline:none;" value="Distribuidora Norte">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Notas</div>
+          <input style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--white);font-size:12px;outline:none;" placeholder="Opcional">
+        </div>
+      </div>
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Costo c/IVA</th>
+            <th>Alícuota IVA</th>
+            <th>Costo neto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <select style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--white);font-size:12px;outline:none;">
+                <option>Coca Cola 500ml</option>
+              </select>
+            </td>
+            <td><input class="stock-input" value="48"></td>
+            <td><input class="stock-input" value="$350"></td>
+            <td>
+              <select style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--white);font-size:12px;outline:none;">
+                <option>21%</option>
+              </select>
+            </td>
+            <td style="font-weight:600;color:var(--cream);">$289,26</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+        <button class="btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--white);font-size:12px;">+ Agregar producto</button>
+        <button class="btn btn-primary" style="width:auto;padding:8px 20px;">Registrar compra</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;">Al confirmar: actualiza stock y costos de cada producto automáticamente.</div>
+    </div>
+  </div>
+
+  <!-- 06. Facturación -->
+  <div class="section">
+    <div class="section-title">06 — Cambios en Facturación + módulos</div>
+    <div class="card-grid card-grid-2">
+      <div class="module">
+        <div class="module-header">
+          <span class="module-title">Cobros (nuevo)</span>
+          <span class="badge badge-green">Nuevo</span>
+        </div>
+        <div class="module-body">
+          <div class="module-item">Ruta <code>/admin/cobros</code> — siempre visible</div>
+          <div class="module-item">Todos los ingresos: reservas + consumos</div>
+          <div class="module-item">Filas agrupadas expandibles por origen</div>
+          <div class="module-item">Sub-filas por cada pago individual</div>
+          <div class="module-item">Estado fiscal: Facturado / Mixto / Sin comprobante</div>
+          <div class="module-item">Link a comprobante ARCA en sub-filas de transferencia</div>
+        </div>
+      </div>
+      <div class="module">
+        <div class="module-header">
+          <span class="module-title">Comprobantes (sin cambio conceptual)</span>
+          <span class="badge badge-amber">Modificado</span>
+        </div>
+        <div class="module-body">
+          <div class="module-item">Solo documentos fiscales ARCA con CAE</div>
+          <div class="module-item">Columna <strong>Origen</strong>: badge "Reserva" o "Consumo"</div>
+          <div class="module-item">Columna <strong>Cuenta bancaria</strong> que emitió</div>
+          <div class="module-item">Sin pagos en efectivo — esos van a Cobros</div>
+        </div>
+      </div>
+      <div class="module">
+        <div class="module-header">
+          <span class="module-title">config_modulos (nuevo)</span>
+          <span class="badge badge-green">Nuevo</span>
+        </div>
+        <div class="module-body">
+          <div class="module-item">Tabla fila única: <code>facturacion</code>, <code>pos</code>, <code>stock</code> bools</div>
+          <div class="module-item">Layout fetcha flags → pasa al sidebar</div>
+          <div class="module-item">Sidebar oculta módulo si flag = <code>false</code></div>
+          <div class="module-item">Toggles en Configuración (solo superadmin)</div>
+          <div class="module-item"><code>Cobros</code> siempre visible, sin flag</div>
+        </div>
+      </div>
+      <div class="module">
+        <div class="module-header">
+          <span class="module-title">Configuración → Facturación</span>
+          <span class="badge badge-amber">Modificado</span>
+        </div>
+        <div class="module-body">
+          <div class="module-item">CRUD de <strong>Entidades fiscales</strong> (antes fila única)</div>
+          <div class="module-item">CRUD de <strong>Cuentas bancarias</strong> con asociación a entidad</div>
+          <div class="module-item">CRUD de <strong>Alícuotas IVA</strong></div>
+          <div class="module-item">Toggles activar/desactivar módulos (facturación, POS, stock)</div>
+          <div class="module-item">Toggle <code>predeterminada</code> por entidad fiscal</div>
+        </div>
+      </div>
+      <div class="module">
+        <div class="module-header">
+          <span class="module-title">lib/facturacion/afip-client.ts</span>
+          <span class="badge badge-amber">Modificado</span>
+        </div>
+        <div class="module-body">
+          <div class="module-item">Recibe <code>entidad_fiscal_id</code> en lugar de asumir <code>id = 1</code></div>
+          <div class="module-item">Soporta múltiples CUIT con sus propios cert/key</div>
+        </div>
+      </div>
+      <div class="module">
+        <div class="module-header">
+          <span class="module-title">lib/facturacion/emitir.ts</span>
+          <span class="badge badge-amber">Modificado</span>
+        </div>
+        <div class="module-body">
+          <div class="module-item">Recibe <code>pago_id</code> en lugar de <code>reserva_id + monto</code></div>
+          <div class="module-item">Resuelve entidad fiscal desde <code>pago → cuenta_bancaria → entidad_fiscal</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 07. APIs -->
+  <div class="section">
+    <div class="section-title">07 — APIs nuevas</div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table class="api-table">
+        <thead>
+          <tr>
+            <th>Método</th>
+            <th>Ruta</th>
+            <th>Propósito</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="group-header" colspan="3">Entidades fiscales y cuentas bancarias</td></tr>
+          <tr><td><span class="method method-get">GET</span> <span class="method method-post">POST</span></td><td class="endpoint">/api/admin/entidades-fiscales</td><td>Listar / crear</td></tr>
+          <tr><td><span class="method method-patch">PATCH</span> <span class="method method-delete">DEL</span></td><td class="endpoint">/api/admin/entidades-fiscales/[id]</td><td>Actualizar / eliminar</td></tr>
+          <tr><td><span class="method method-get">GET</span> <span class="method method-post">POST</span></td><td class="endpoint">/api/admin/cuentas-bancarias</td><td>Listar / crear</td></tr>
+          <tr><td><span class="method method-patch">PATCH</span> <span class="method method-delete">DEL</span></td><td class="endpoint">/api/admin/cuentas-bancarias/[id]</td><td>Actualizar / eliminar</td></tr>
+          <tr><td class="group-header" colspan="3">Cobros (vista financiera)</td></tr>
+          <tr><td><span class="method method-get">GET</span></td><td class="endpoint">/api/admin/cobros</td><td>Todos los ingresos agrupados por origen (reserva/consumo) con pagos y comprobantes</td></tr>
+          <tr><td class="group-header" colspan="3">Pagos</td></tr>
+          <tr><td><span class="method method-post">POST</span></td><td class="endpoint">/api/admin/pagos</td><td>Registrar pago de reserva o consumo</td></tr>
+          <tr><td><span class="method method-get">GET</span></td><td class="endpoint">/api/admin/pagos?origen_tipo=reserva&origen_id=xxx</td><td>Pagos de un origen</td></tr>
+          <tr><td class="group-header" colspan="3">POS</td></tr>
+          <tr><td><span class="method method-get">GET</span></td><td class="endpoint">/api/admin/pos/productos</td><td>Productos activos para POS</td></tr>
+          <tr><td><span class="method method-get">GET</span> <span class="method method-post">POST</span></td><td class="endpoint">/api/admin/pos/consumos</td><td>Historial / crear consumo</td></tr>
+          <tr><td class="group-header" colspan="3">Stock</td></tr>
+          <tr><td><span class="method method-get">GET</span> <span class="method method-post">POST</span></td><td class="endpoint">/api/admin/stock/productos</td><td>Listar / crear productos</td></tr>
+          <tr><td><span class="method method-patch">PATCH</span></td><td class="endpoint">/api/admin/stock/productos/[id]</td><td>Update inline (precio, stock, etc.)</td></tr>
+          <tr><td><span class="method method-get">GET</span> <span class="method method-post">POST</span></td><td class="endpoint">/api/admin/stock/categorias</td><td>CRUD categorías</td></tr>
+          <tr><td><span class="method method-get">GET</span> <span class="method method-post">POST</span></td><td class="endpoint">/api/admin/stock/compras</td><td>Historial / registrar compra</td></tr>
+          <tr><td class="group-header" colspan="3">Configuración</td></tr>
+          <tr><td><span class="method method-get">GET</span> <span class="method method-patch">PATCH</span></td><td class="endpoint">/api/admin/config/modulos</td><td>Leer / actualizar flags de módulos (superadmin)</td></tr>
+          <tr><td><span class="method method-get">GET</span> <span class="method method-post">POST</span></td><td class="endpoint">/api/admin/iva-alicuotas</td><td>CRUD alícuotas IVA</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 08. Métricas -->
+  <div class="section">
+    <div class="section-title">08 — Métricas habilitadas</div>
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-name">Margen bruto por producto</div>
+        <div class="metric-formula">precio - costo_neto</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">Ganancia por consumo</div>
+        <div class="metric-formula">Σ (precio_unitario - costo_neto) × cantidad</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">Ingresos por medio de pago</div>
+        <div class="metric-formula">Σ pagos GROUP BY medio_pago</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">Ingresos por entidad fiscal</div>
+        <div class="metric-formula">Σ comprobantes GROUP BY entidad_fiscal</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">Costo de mercadería</div>
+        <div class="metric-formula">Σ compra_items.costo_con_iva por período</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">Evolución de precios</div>
+        <div class="metric-formula">historial en producto_precios</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 09. Timeline -->
+  <div class="section">
+    <div class="section-title">09 — Plan de implementación</div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-dot dot-green">1</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-phase">Migración de base de datos</div>
+          <div class="timeline-tasks">Nueva migración SQL: rename config_facturacion → entidades_fiscales, crear cuentas_bancarias, pagos, iva_alicuotas, categorias, productos, producto_precios, consumos, consumo_items, compras, compra_items. Modificar comprobantes (pago_id, origen_tipo). Seed de alícuotas IVA.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-dot dot-blue">2</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-phase">Refactor facturación multi-entidad</div>
+          <div class="timeline-tasks">Actualizar afip-client.ts y emitir.ts para recibir entidad_fiscal_id vía pago_id. Nuevas APIs: entidades-fiscales, cuentas-bancarias, pagos. Actualizar tipos en lib/facturacion/types.ts.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-dot dot-amber">3</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-phase">UI Configuración — multi-entidad</div>
+          <div class="timeline-tasks">Sección Facturación en Configuración: CRUD entidades fiscales, CRUD cuentas bancarias, CRUD alícuotas IVA. Migrar la UI existente de config_facturacion a este nuevo CRUD.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-dot dot-amber">4</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-phase">Pagos split en Reservas</div>
+          <div class="timeline-tasks">Panel de cobro en vista de reserva: agregar N medios de pago, seleccionar cuenta bancaria para transferencias. API POST /api/admin/pagos. Trigger automático de emitirFactura() para pagos por transferencia.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-dot dot-purple">5</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-phase">Módulo Stock</div>
+          <div class="timeline-tasks">Página /admin/stock con tabs: Productos (tabla edición inline, historial precios), Categorías (CRUD inline), Compras (registrar compra con cálculo IVA automático y actualización de stock).</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-dot dot-green">6</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-phase">Módulo POS</div>
+          <div class="timeline-tasks">Página /admin/pos: layout catálogo + carrito. Vista Grid (tabs de categorías + cards). Vista Lista (buscador). Toggle persistido en localStorage. Panel de cobro inline con pagos split. Opción de asociar a reserva. API consumos.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-dot dot-blue">7</div>
+          <div class="timeline-line"></div>
+        </div>
+        <div class="timeline-content">
+          <div class="timeline-phase">Actualizar Comprobantes</div>
+          <div class="timeline-tasks">Actualizar ComprobantesTab: columna Origen (Reserva/Consumo), columna Cuenta bancaria, filtro por origen. Validar que reservas 100% efectivo no aparecen.</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="timeline-dot dot-blue">8</div>
+        </div>
+        <div class="timeline-content" style="padding-bottom:0;">
+          <div class="timeline-phase">Sidebar + QA</div>
+          <div class="timeline-tasks">Agregar Cobros, POS y Stock al sidebar. config_modulos: props al sidebar para ocultar módulos inactivos. Toggles en Configuración (superadmin). Prueba del flujo completo: reserva cobrada mixta → Cobros muestra fila expandible → comprobante ARCA correcto. Venta POS → consumo + comprobante. Compra → stock actualizado.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. Archivos -->
+  <div class="section">
+    <div class="section-title">10 — Archivos a crear / modificar</div>
+    <div class="card-grid card-grid-2">
+      <div class="card">
+        <h3 style="margin-bottom:12px;">Nuevos</h3>
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <code>supabase/migrations/xxx_pos_stock.sql</code>
+          <code>app/admin/(protected)/pos/page.tsx</code>
+          <code>app/admin/(protected)/stock/page.tsx</code>
+          <code>app/api/admin/entidades-fiscales/route.ts</code>
+          <code>app/api/admin/entidades-fiscales/[id]/route.ts</code>
+          <code>app/api/admin/cuentas-bancarias/route.ts</code>
+          <code>app/api/admin/cuentas-bancarias/[id]/route.ts</code>
+          <code>app/api/admin/pagos/route.ts</code>
+          <code>app/api/admin/pos/consumos/route.ts</code>
+          <code>app/api/admin/pos/productos/route.ts</code>
+          <code>app/api/admin/stock/productos/route.ts</code>
+          <code>app/api/admin/stock/productos/[id]/route.ts</code>
+          <code>app/api/admin/stock/categorias/route.ts</code>
+          <code>app/api/admin/stock/compras/route.ts</code>
+          <code>app/api/admin/iva-alicuotas/route.ts</code>
+          <code>components/admin/pos/POSClient.tsx</code>
+          <code>components/admin/pos/CatalogoGrid.tsx</code>
+          <code>components/admin/pos/CatalogoLista.tsx</code>
+          <code>components/admin/pos/Carrito.tsx</code>
+          <code>components/admin/pos/PanelCobro.tsx</code>
+          <code>components/admin/stock/StockClient.tsx</code>
+          <code>components/admin/stock/ProductosTab.tsx</code>
+          <code>components/admin/stock/CategoriasTab.tsx</code>
+          <code>components/admin/stock/ComprasTab.tsx</code>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:12px;">Modificados</h3>
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <code>lib/facturacion/afip-client.ts</code>
+          <code>lib/facturacion/emitir.ts</code>
+          <code>lib/facturacion/types.ts</code>
+          <code>lib/types.ts</code>
+          <code>components/admin/AdminSidebar.tsx</code>
+          <code>components/admin/facturacion/ComprobantesTab.tsx</code>
+          <code>components/admin/ConfigClient.tsx</code>
+          <code>app/api/admin/facturacion/route.ts</code>
+          <code>app/api/admin/facturacion/[id]/route.ts</code>
+          <code>app/api/admin/facturacion/procesar-cola/route.ts</code>
+          <code>app/api/admin/config/facturacion/route.ts</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

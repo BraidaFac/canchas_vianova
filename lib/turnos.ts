@@ -23,12 +23,14 @@ export type TurnosCanchas = Cancha[];
 export async function getTurnosDisponibles(): Promise<TurnosCanchas | null> {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
   const { data, error } = await supabase
     .from("v_slots_disponibles")
-    .select("cancha_id, cancha_nombre, cancha_tipo, turno_id, hora_inicio, hora_fin, fecha");
+    .select(
+      "cancha_id, cancha_nombre, cancha_tipo, turno_id, hora_inicio, hora_fin, fecha",
+    );
 
   if (error || !data) return null;
 
@@ -45,10 +47,11 @@ export async function getTurnosDisponibles(): Promise<TurnosCanchas | null> {
       c.id,
       {
         tipoCanchaId: c.tipo_cancha_id as number,
-        tipoCanchaNombre: (c.tipos_cancha as any)?.nombre ?? String(c.tipo_cancha_id),
+        tipoCanchaNombre:
+          (c.tipos_cancha as any)?.nombre ?? String(c.tipo_cancha_id),
         jugadores: c.jugadores as number,
       },
-    ])
+    ]),
   );
 
   const canchasMap = new Map<number, Cancha>();

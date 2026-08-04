@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth.server";
 
 export async function DELETE(
   _request: NextRequest,
@@ -17,7 +17,7 @@ export async function DELETE(
     .from("reservas")
     .select("id")
     .eq("turno_id", id)
-    .in("estado", ["pendiente_pago", "confirmada"])
+    .in("estado", ["confirmada"])
     .limit(1);
 
   if (enUso && enUso.length > 0) {

@@ -39,6 +39,7 @@ export default async function ReservasPage({
     { data: canchas },
     { data: turnos },
     { data: precioReglasData },
+    { data: cuentasBancarias },
   ] = await Promise.all([
     query,
     supabase
@@ -55,6 +56,11 @@ export default async function ReservasPage({
       .select("id, tipo_cancha_id, hora_desde, hora_hasta, dias_semana, precio, vigente_desde, activa")
       .eq("activa", true)
       .order("vigente_desde", { ascending: false }),
+    supabase
+      .from("cuentas_bancarias")
+      .select("id, nombre_display, alias, activo")
+      .eq("activo", true)
+      .order("nombre_display"),
   ]);
 
   const precioReglas = (precioReglasData ?? []).map(r => ({
@@ -73,6 +79,8 @@ export default async function ReservasPage({
       canchas={(canchas ?? []) as any[]}
       turnos={sortTurnos(turnos ?? [])}
       precioReglas={precioReglas}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      cuentasBancarias={(cuentasBancarias ?? []) as any[]}
     />
   );
 }

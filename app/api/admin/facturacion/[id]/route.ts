@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
-import { getAfipClientDefault } from "@/lib/facturacion/afip-client";
+import { getSession } from "@/lib/auth.server";
+import { getAfipClient } from "@/lib/facturacion/afip-client";
 
 function toDateInt(dateStr: string): number {
   return parseInt(dateStr.replace(/-/g, ""), 10);
@@ -48,7 +48,18 @@ export async function POST(
   if (cbte.estado === "anulada") return NextResponse.json({ error: "Comprobante anulado" }, { status: 400 });
 
   try {
-    const { client, config } = await getAfipClientDefault();
+    const { data: pago } = await supabase
+      .from("pagos")
+      .select("cuenta_bancaria:cuentas_bancarias(entidad_fiscal_id)")
+      .eq("id", cbte.pago_id)
+      .single();
+
+    const entidadFiscalId = (pago?.cuenta_bancaria as { entidad_fiscal_id: string } | null)?.entidad_fiscal_id;
+    if (!entidadFiscalId) {
+      return NextResponse.json({ error: "No se pudo resolver la entidad fiscal del comprobante" }, { status: 400 });
+    }
+
+    const { client, config } = await getAfipClient(entidadFiscalId);
     const puntoVenta = config.punto_venta!;
     const tipoCbte = config.condicion_iva === "responsable_inscripto" ? 6 : 11;
     const ultimoNro = await client.ElectronicBilling.getLastVoucher(puntoVenta, tipoCbte);

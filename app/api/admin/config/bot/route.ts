@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-
-async function requireSuperAdmin() {
-  const session = await getSession();
-  if (!session) return { error: "No autorizado", status: 401 };
-  if (session.rol !== "superadmin") return { error: "Requiere superadmin", status: 403 };
-  return { session };
-}
+import { requireRoot } from "@/lib/api-auth";
 
 export async function GET() {
-  const check = await requireSuperAdmin();
-  if (check.error) return NextResponse.json({ error: check.error }, { status: check.status });
+  const auth = await requireRoot();
+  if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
@@ -24,8 +17,8 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
-  const check = await requireSuperAdmin();
-  if (check.error) return NextResponse.json({ error: check.error }, { status: check.status });
+  const auth = await requireRoot();
+  if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const { clave, valor } = await req.json();
   if (!clave || valor === undefined) {

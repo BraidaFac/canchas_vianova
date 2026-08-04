@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guía: Certificados ARCA — Homologación</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #161b27;
+      --surface2: #1e2535;
+      --border: #2a3347;
+      --green: #22c55e;
+      --green-dim: #166534;
+      --green-bg: #052e16;
+      --blue: #3b82f6;
+      --blue-dim: #1e40af;
+      --blue-bg: #0c1a3a;
+      --amber: #f59e0b;
+      --amber-bg: #271a03;
+      --amber-dim: #92400e;
+      --red: #ef4444;
+      --red-bg: #2d0a0a;
+      --purple: #a855f7;
+      --purple-bg: #1e0a3a;
+      --cyan: #06b6d4;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --muted2: #94a3b8;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.65;
+      padding: 2rem 1rem;
+    }
+
+    .container { max-width: 800px; margin: 0 auto; }
+
+    /* Header */
+    .header { text-align: center; margin-bottom: 3rem; }
+    .header .badge {
+      display: inline-block;
+      background: var(--amber-bg);
+      color: var(--amber);
+      border: 1px solid var(--amber-dim);
+      border-radius: 999px;
+      padding: 0.25rem 0.875rem;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .header h1 { font-size: 1.75rem; font-weight: 700; color: #f8fafc; margin-bottom: 0.5rem; }
+    .header p { color: var(--muted2); font-size: 14px; max-width: 540px; margin: 0 auto; }
+
+    /* Progress */
+    .progress {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 3rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+    .progress-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      min-width: 90px;
+      flex: 1;
+    }
+    .progress-item .dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+    }
+    .progress-item .dot.blue { background: var(--blue-bg); border: 2px solid var(--blue); color: var(--blue); }
+    .progress-item .dot.green { background: var(--green-bg); border: 2px solid var(--green); color: var(--green); }
+    .progress-item .dot.amber { background: var(--amber-bg); border: 2px solid var(--amber); color: var(--amber); }
+    .progress-item .dot.purple { background: var(--purple-bg); border: 2px solid var(--purple); color: var(--purple); }
+    .progress-item span { font-size: 11px; color: var(--muted2); text-align: center; }
+    .progress-line { flex: 1; height: 2px; background: var(--border); min-width: 20px; margin-top: -1.6rem; }
+
+    /* Section */
+    .section { margin-bottom: 2.5rem; }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.875rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.875rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .section-num.blue { background: var(--blue-bg); color: var(--blue); border: 1.5px solid var(--blue-dim); }
+    .section-num.green { background: var(--green-bg); color: var(--green); border: 1.5px solid var(--green-dim); }
+    .section-num.amber { background: var(--amber-bg); color: var(--amber); border: 1.5px solid var(--amber-dim); }
+    .section-num.purple { background: var(--purple-bg); color: var(--purple); border: 1.5px solid #7e22ce; }
+
+    .section-title { font-size: 1rem; font-weight: 700; color: #f8fafc; }
+    .section-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: 1rem; }
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .step-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.875rem 1rem;
+    }
+    .step-n {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted2);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-content { flex: 1; }
+    .step-content strong { display: block; font-size: 13px; font-weight: 600; color: #f1f5f9; margin-bottom: 0.3rem; }
+    .step-content p { font-size: 13px; color: var(--muted2); }
+    .step-content a { color: var(--blue); text-decoration: underline; }
+
+    .step-body { padding: 0 1rem 0.875rem 1rem; padding-left: calc(1rem + 22px + 0.75rem); }
+
+    /* Code block */
+    .code-block {
+      background: #0a0e18;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.875rem 1rem;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 12px;
+      color: #a3e635;
+      overflow-x: auto;
+      white-space: pre;
+      margin-top: 0.5rem;
+    }
+    .code-block .comment { color: var(--muted); }
+    .code-block .flag { color: var(--cyan); }
+    .code-block .val { color: var(--amber); }
+
+    /* Callout */
+    .callout {
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 13px;
+      margin-top: 0.625rem;
+      display: flex;
+      gap: 0.625rem;
+    }
+    .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+    .callout.info { background: var(--blue-bg); border: 1px solid var(--blue-dim); color: #93c5fd; }
+    .callout.warn { background: var(--amber-bg); border: 1px solid var(--amber-dim); color: #fcd34d; }
+    .callout.tip  { background: var(--green-bg); border: 1px solid var(--green-dim); color: #86efac; }
+
+    /* File result */
+    .file-result {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 12px;
+      margin-top: 0.5rem;
+    }
+    .file-result .file-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0; }
+    .file-result .file-icon { font-size: 14px; }
+    .file-result .file-name { font-family: monospace; color: var(--cyan); font-weight: 600; }
+    .file-result .file-desc { color: var(--muted2); }
+
+    /* Nav path */
+    .nav-path {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.625rem 0.875rem;
+      font-size: 12px;
+      margin-top: 0.5rem;
+    }
+    .nav-path span { color: var(--muted2); }
+    .nav-path .sep { color: var(--border); }
+    .nav-path .current { color: var(--amber); font-weight: 600; }
+
+    /* Final box */
+    .final-box {
+      background: var(--green-bg);
+      border: 1px solid var(--green-dim);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+    .final-box h3 { color: var(--green); font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .final-box .field-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--green-dim);
+      font-size: 13px;
+    }
+    .final-box .field-row:last-child { border-bottom: none; }
+    .final-box .field-label { color: var(--muted2); min-width: 120px; flex-shrink: 0; }
+    .final-box .field-val { color: #86efac; font-family: monospace; }
+
+    /* Divider */
+    .divider { height: 1px; background: var(--border); margin: 2rem 0; }
+
+    @media (max-width: 600px) {
+      .header h1 { font-size: 1.35rem; }
+      .progress-item span { font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="badge">🧪 Homologación — Ambiente de Testing</div>
+      <h1>Guía de Certificados ARCA</h1>
+      <p>Paso a paso para obtener las claves y el certificado digital necesarios para usar la facturación electrónica en testing.</p>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress">
+      <div class="progress-item">
+        <div class="dot blue">1</div>
+        <span>AFIP SDK<br>Token</span>
+      </div>
+      <div class="progress-line"></div>
+      <div class="progress-item">
+        <div class="dot green">2</div>
+        <span>Generar<br>clave RSA</span>
+      </div>
+      <div class="progress-line"></div>
+      <div class="progress-item">
+        <div class="dot amber">3</div>
+        <span>Certificado<br>ARCA</span>
+      </div>
+      <div class="progress-line"></div>
+      <div class="progress-item">
+        <div class="dot purple">4</div>
+        <span>Punto<br>de venta</span>
+      </div>
+    </div>
+
+    <!-- PARTE 1: SDK Token -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num blue">1</div>
+        <div>
+          <div class="section-title">Obtener token de AFIP SDK</div>
+          <div class="section-sub">El SDK actúa como proxy para los Web Services de ARCA — necesitás un token de su plataforma.</div>
+        </div>
+      </div>
+      <div class="steps">
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">1</div>
+            <div class="step-content">
+              <strong>Ir a app.afipsdk.com y registrarte</strong>
+              <p>Abrí <a href="https://app.afipsdk.com" target="_blank">app.afipsdk.com</a> y creá una cuenta con tu email.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">2</div>
+            <div class="step-content">
+              <strong>Crear una nueva aplicación</strong>
+              <p>En el panel, hacé clic en <em>"Nueva Aplicación"</em> y completá el nombre (ej: "Canchas Via Nova").</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">3</div>
+            <div class="step-content">
+              <strong>Copiar el Access Token</strong>
+              <p>En los detalles de tu app verás el campo <strong>Access Token</strong>. Copiá ese valor — empieza con <code>sdk_</code>.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="callout tip">
+              <span class="callout-icon">💡</span>
+              <span>Guardá este token. Lo vas a pegar en <strong>Facturación → Configuración → Access Token</strong> en el panel admin.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- PARTE 2: Clave RSA -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num green">2</div>
+        <div>
+          <div class="section-title">Generar la clave privada RSA</div>
+          <div class="section-sub">Necesitás OpenSSL instalado. En Windows: descargá desde slproweb.com o usá Git Bash / WSL.</div>
+        </div>
+      </div>
+      <div class="steps">
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">1</div>
+            <div class="step-content">
+              <strong>Verificar que tenés OpenSSL</strong>
+              <p>Abrí una terminal y ejecutá:</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="code-block">openssl version</div>
+            <div class="callout info">
+              <span class="callout-icon">ℹ️</span>
+              <span>Si dice <code>OpenSSL 3.x.x</code> o similar, estás listo. Si no lo tenés instalado en Windows, abrí <strong>Git Bash</strong> (viene con Git for Windows) — ya incluye OpenSSL.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">2</div>
+            <div class="step-content">
+              <strong>Crear una carpeta de trabajo</strong>
+              <p>Creá una carpeta temporal para los archivos. Reemplazá la ruta si querés.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="code-block"><span class="comment"># Windows PowerShell</span>
+mkdir C:\arca-certs
+cd C:\arca-certs
+
+<span class="comment"># O en Linux/Mac</span>
+mkdir ~/arca-certs && cd ~/arca-certs</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">3</div>
+            <div class="step-content">
+              <strong>Generar la clave privada RSA de 2048 bits</strong>
+              <p>Este comando genera tu <code>private.key</code> — guardala en un lugar seguro, nunca la compartás.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="code-block">openssl genrsa <span class="flag">-out</span> <span class="val">private.key</span> 2048</div>
+            <div class="file-result">
+              <div class="file-row">
+                <span class="file-icon">🔑</span>
+                <span class="file-name">private.key</span>
+                <span class="file-desc">— Clave privada RSA (¡nunca subir al repo!)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">4</div>
+            <div class="step-content">
+              <strong>Generar el CSR (Certificate Signing Request)</strong>
+              <p>Reemplazá <code>TU_CUIT</code> con tu CUIT sin guiones (ej: <code>20123456789</code>) y <code>NOMBRE_EMPRESA</code> con tu razón social.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="code-block">openssl req <span class="flag">-new</span> <span class="flag">-key</span> <span class="val">private.key</span> \
+  <span class="flag">-subj</span> <span class="val">"/C=AR/O=NOMBRE_EMPRESA/CN=TU_CUIT/serialNumber=CUIT TU_CUIT"</span> \
+  <span class="flag">-out</span> <span class="val">cert.csr</span>
+
+<span class="comment"># Ejemplo concreto:</span>
+openssl req -new -key private.key \
+  -subj "/C=AR/O=Via Nova/CN=20123456789/serialNumber=CUIT 20123456789" \
+  -out cert.csr</div>
+            <div class="file-result">
+              <div class="file-row">
+                <span class="file-icon">📄</span>
+                <span class="file-name">cert.csr</span>
+                <span class="file-desc">— Solicitud de certificado (este vas a subir a ARCA)</span>
+              </div>
+            </div>
+            <div class="callout warn">
+              <span class="callout-icon">⚠️</span>
+              <span>En Windows el comando multilínea con <code>\</code> no funciona en PowerShell. Escribilo todo en una sola línea o usá Git Bash.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- PARTE 3: Certificado ARCA -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num amber">3</div>
+        <div>
+          <div class="section-title">Obtener el certificado de ARCA (homologación)</div>
+          <div class="section-sub">Vas a usar el portal de AFIP con tu CUIT real. El certificado sirve tanto para testing como para producción.</div>
+        </div>
+      </div>
+      <div class="steps">
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">1</div>
+            <div class="step-content">
+              <strong>Ingresar al portal de AFIP/ARCA</strong>
+              <p>Ir a <a href="https://auth.afip.gob.ar/contribuyente/" target="_blank">auth.afip.gob.ar/contribuyente/</a> con tu CUIT y Clave Fiscal (nivel 2 mínimo).</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">2</div>
+            <div class="step-content">
+              <strong>Habilitar el servicio WSFE (si no lo tenés)</strong>
+              <p>Si es primera vez, necesitás habilitarte el Web Service de Facturación Electrónica.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="nav-path">
+              <span>Mis Servicios</span>
+              <span class="sep">›</span>
+              <span>Administrador de Relaciones de Clave Fiscal</span>
+              <span class="sep">›</span>
+              <span>Nueva Relación</span>
+              <span class="sep">›</span>
+              <span class="current">WSFE — Facturación Electrónica</span>
+            </div>
+            <div class="callout info">
+              <span class="callout-icon">ℹ️</span>
+              <span>Si ya usás factura electrónica desde el portal web de AFIP, probablemente ya lo tenés habilitado.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">3</div>
+            <div class="step-content">
+              <strong>Ir a Administración de Certificados Digitales</strong>
+              <p>Buscá el servicio en Mis Servicios o usá el buscador del portal.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="nav-path">
+              <span>Mis Servicios</span>
+              <span class="sep">›</span>
+              <span class="current">Administración de Certificados Digitales</span>
+            </div>
+            <div class="callout info">
+              <span class="callout-icon">🔍</span>
+              <span>Si no aparece en "Mis Servicios", buscalo en el buscador del portal como <strong>"certificado"</strong>. También puede estar bajo <strong>"Web Services"</strong> en la sección de servicios habilitados.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">4</div>
+            <div class="step-content">
+              <strong>Agregar nuevo certificado</strong>
+              <p>Hacé clic en <strong>"Agregar Alias"</strong> o <strong>"Nuevo Certificado"</strong>.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="callout tip">
+              <span class="callout-icon">💡</span>
+              <span>Ponele un alias descriptivo, ej: <strong>via_nova_app</strong> o <strong>canchas_wsfe</strong>. Este alias no impacta en nada técnico, es solo para identificar el certificado en el portal.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">5</div>
+            <div class="step-content">
+              <strong>Subir el archivo cert.csr</strong>
+              <p>El portal te va a pedir que pegues el contenido del CSR o que subas el archivo. Pegá el contenido del <code>cert.csr</code> generado antes.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="code-block"><span class="comment"># Para ver el contenido del CSR:</span>
+cat cert.csr
+
+<span class="comment"># O en Windows PowerShell:</span>
+type C:\arca-certs\cert.csr</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">6</div>
+            <div class="step-content">
+              <strong>Descargar el certificado firmado</strong>
+              <p>ARCA firma el CSR y te da el certificado <code>.crt</code>. Descargalo y guardalo junto al <code>private.key</code>.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="file-result">
+              <div class="file-row">
+                <span class="file-icon">🏅</span>
+                <span class="file-name">certificado.crt</span>
+                <span class="file-desc">— Certificado firmado por ARCA (va en el panel admin)</span>
+              </div>
+              <div class="file-row">
+                <span class="file-icon">🔑</span>
+                <span class="file-name">private.key</span>
+                <span class="file-desc">— Clave privada (va en el panel admin)</span>
+              </div>
+            </div>
+            <div class="callout warn">
+              <span class="callout-icon">⚠️</span>
+              <span>Los certificados de ARCA vienen con validez de <strong>2 años</strong>. Anotate la fecha de vencimiento para renovarlo a tiempo.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">7</div>
+            <div class="step-content">
+              <strong>Ver el contenido de los archivos</strong>
+              <p>Necesitás el texto completo de cada archivo para pegarlo en el panel admin.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="code-block"><span class="comment"># Ver el certificado</span>
+cat certificado.crt
+
+<span class="comment"># Ver la clave privada</span>
+cat private.key
+
+<span class="comment"># En Windows PowerShell:</span>
+type C:\arca-certs\certificado.crt
+type C:\arca-certs\private.key</div>
+            <div class="callout tip">
+              <span class="callout-icon">✅</span>
+              <span>El certificado empieza con <code>-----BEGIN CERTIFICATE-----</code> y la clave con <code>-----BEGIN RSA PRIVATE KEY-----</code>. Copiá el texto completo incluyendo esas líneas.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- PARTE 4: Punto de venta -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num purple">4</div>
+        <div>
+          <div class="section-title">Crear el Punto de Venta en ARCA</div>
+          <div class="section-sub">El punto de venta es el número que identifica el origen de tus facturas (ej: 00001).</div>
+        </div>
+      </div>
+      <div class="steps">
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">1</div>
+            <div class="step-content">
+              <strong>Ir a ABM Puntos de Venta</strong>
+              <p>Desde el portal AFIP, buscá <em>"Administración de Puntos de Venta"</em> o <em>"RCEL"</em>.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="nav-path">
+              <span>Mis Servicios</span>
+              <span class="sep">›</span>
+              <span>RCEL — Régimen de Factura Electrónica</span>
+              <span class="sep">›</span>
+              <span class="current">ABM Puntos de Venta</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-header">
+            <div class="step-n">2</div>
+            <div class="step-content">
+              <strong>Crear un nuevo Punto de Venta</strong>
+              <p>Hacé clic en <strong>"Alta"</strong> y completá:</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="file-result">
+              <div class="file-row">
+                <span class="file-icon">📌</span>
+                <span class="file-name">Número:</span>
+                <span class="file-desc">1 (o el que prefieras — este número va en la config del sistema)</span>
+              </div>
+              <div class="file-row">
+                <span class="file-icon">📌</span>
+                <span class="file-name">Nombre:</span>
+                <span class="file-desc">Via Nova / Canchas (cualquier nombre descriptivo)</span>
+              </div>
+              <div class="file-row">
+                <span class="file-icon">📌</span>
+                <span class="file-name">Sistema:</span>
+                <span class="file-desc">WEB SERVICES (obligatorio para API)</span>
+              </div>
+            </div>
+            <div class="callout info">
+              <span class="callout-icon">ℹ️</span>
+              <span>Para homologación, ARCA te puede pedir crear el punto de venta en el entorno de testing. El número que elijas acá es el que ponés en <strong>Punto de venta</strong> en la config del sistema.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Final: cargar en el sistema -->
+    <div class="final-box">
+      <h3>✅ Cargar todo en el panel admin</h3>
+      <p style="color: #86efac; font-size: 13px; margin-bottom: 1rem;">
+        Ir a <strong>/admin/facturacion → Configuración</strong> y completar los siguientes campos:
+      </p>
+      <div class="field-row">
+        <span class="field-label">CUIT</span>
+        <span class="field-val">Tu CUIT sin guiones</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Razón social</span>
+        <span class="field-val">Nombre del complejo</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Punto de venta</span>
+        <span class="field-val">El número creado en ARCA (ej: 1)</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Access Token</span>
+        <span class="field-val">sdk_... (de app.afipsdk.com)</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Modo</span>
+        <span class="field-val">Testing (homologación) ← empezar siempre por acá</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Certificado (.crt)</span>
+        <span class="field-val">Pegar contenido completo del archivo certificado.crt</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Clave privada (.key)</span>
+        <span class="field-val">Pegar contenido completo del archivo private.key</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Facturación activa</span>
+        <span class="field-val">Activar el toggle → Guardar → luego hacer clic en "Verificar" para testear conexión ARCA</span>
+      </div>
+    </div>
+
+    <div style="height: 3rem;"></div>
+    <p style="text-align: center; color: var(--muted); font-size: 12px;">Canchas Via Nova · Guía interna · Homologación ARCA · 2026</p>
+    <div style="height: 2rem;"></div>
+
+  </div>
+</body>
+</html>

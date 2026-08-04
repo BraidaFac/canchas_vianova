@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { Search, Plus, Pencil, Trash2, X, MoreVertical } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, X, MoreVertical, Contact } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -141,9 +141,15 @@ export default function ClientesClient({ clientes: initialClientes }: { clientes
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-border bg-card sticky top-0 z-10">
+      <div className="px-4 py-3 border-b border-border bg-card">
         <div className="flex items-center justify-between mb-3">
-          <h1 className="text-base font-semibold">Clientes</h1>
+          <div className="flex items-center gap-2">
+            <Contact size={16} className="text-[#133D34]" />
+            <h1 className="text-sm font-semibold">Clientes</h1>
+            {filtrados.length > 0 && (
+              <span className="text-xs text-muted-foreground">({filtrados.length})</span>
+            )}
+          </div>
           <Button size="sm" className="h-8" onClick={openCreate} title="Nuevo cliente">
             <Plus size={14} />
             <span className="hidden sm:inline">Nuevo cliente</span>
@@ -161,14 +167,10 @@ export default function ClientesClient({ clientes: initialClientes }: { clientes
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto">
-        {filtrados.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
-            Sin clientes
-          </div>
-        ) : (
+      <div className="flex-1 overflow-auto p-4">
+        <div className="rounded-lg border border-border bg-card overflow-hidden">
           <table className="w-full text-xs">
-            <thead className="bg-muted/50 sticky top-0">
+            <thead className="bg-muted/50">
               <tr>
                 <th className="px-3 py-2 text-left font-medium text-muted-foreground">Nombre</th>
                 <th className="px-3 py-2 text-left font-medium text-muted-foreground">Teléfono</th>
@@ -178,63 +180,69 @@ export default function ClientesClient({ clientes: initialClientes }: { clientes
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtrados.map((c) => (
-                <tr key={c.id} className="odd:bg-background even:bg-muted/30 hover:bg-accent/40 transition-colors">
-                  <td className="px-3 py-2.5 font-medium">{c.nombre ?? <span className="text-muted-foreground italic">Sin nombre</span>}</td>
-                  <td className="px-3 py-2.5 font-mono">{c.telefono}</td>
-                  <td className="px-3 py-2.5 hidden sm:table-cell text-muted-foreground">
-                    {format(parseISO(c.created_at), "dd/MM/yyyy")}
-                  </td>
-                  <td className="px-3 py-2.5 hidden md:table-cell text-center">
-                    {c.reservas_count != null && c.reservas_count > 0 ? (
-                      <span className="inline-block px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-semibold">
-                        {c.reservas_count}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground/40">—</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2.5">
-                    {/* Desktop */}
-                    <div className="hidden sm:flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={() => openEdit(c)} title="Editar">
-                        <Pencil size={12} />
-                      </Button>
-                      <Button
-                        variant="ghost" size="icon"
-                        className={deletingId === c.id ? "h-6 w-6 text-destructive bg-destructive/10" : "h-6 w-6 text-muted-foreground hover:text-destructive"}
-                        onClick={() => handleDelete(c.id)}
-                        title={deletingId === c.id ? "¿Confirmar?" : "Eliminar"}
-                      >
-                        {deletingId === c.id ? <X size={12} /> : <Trash2 size={12} />}
-                      </Button>
-                    </div>
-                    {/* Mobile */}
-                    <div className="flex sm:hidden items-center justify-end">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical size={13} /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openEdit(c)}>
-                            <Pencil size={13} className="mr-2" />Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className={deletingId === c.id ? "text-destructive focus:text-destructive bg-destructive/10" : "text-destructive focus:text-destructive"}
-                            onClick={() => handleDelete(c.id)}
-                          >
-                            {deletingId === c.id ? <X size={13} className="mr-2" /> : <Trash2 size={13} className="mr-2" />}
-                            {deletingId === c.id ? "¿Confirmar?" : "Eliminar"}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </td>
+              {filtrados.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-sm text-muted-foreground px-4 py-8 text-center">Sin clientes</td>
                 </tr>
-              ))}
+              ) : (
+                filtrados.map((c) => (
+                  <tr key={c.id} className="odd:bg-background even:bg-muted/30 hover:bg-accent/40 transition-colors">
+                    <td className="px-3 py-2.5 font-medium">{c.nombre ?? <span className="text-muted-foreground italic">Sin nombre</span>}</td>
+                    <td className="px-3 py-2.5 font-mono">{c.telefono}</td>
+                    <td className="px-3 py-2.5 hidden sm:table-cell text-muted-foreground">
+                      {format(parseISO(c.created_at), "dd/MM/yyyy")}
+                    </td>
+                    <td className="px-3 py-2.5 hidden md:table-cell text-center">
+                      {c.reservas_count != null && c.reservas_count > 0 ? (
+                        <span className="inline-block px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-semibold">
+                          {c.reservas_count}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground/40">—</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {/* Desktop */}
+                      <div className="hidden sm:flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={() => openEdit(c)} title="Editar">
+                          <Pencil size={12} />
+                        </Button>
+                        <Button
+                          variant="ghost" size="icon"
+                          className={deletingId === c.id ? "h-6 w-6 text-destructive bg-destructive/10" : "h-6 w-6 text-muted-foreground hover:text-destructive"}
+                          onClick={() => handleDelete(c.id)}
+                          title={deletingId === c.id ? "¿Confirmar?" : "Eliminar"}
+                        >
+                          {deletingId === c.id ? <X size={12} /> : <Trash2 size={12} />}
+                        </Button>
+                      </div>
+                      {/* Mobile */}
+                      <div className="flex sm:hidden items-center justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical size={13} /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openEdit(c)}>
+                              <Pencil size={13} className="mr-2" />Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className={deletingId === c.id ? "text-destructive focus:text-destructive bg-destructive/10" : "text-destructive focus:text-destructive"}
+                              onClick={() => handleDelete(c.id)}
+                            >
+                              {deletingId === c.id ? <X size={13} className="mr-2" /> : <Trash2 size={13} className="mr-2" />}
+                              {deletingId === c.id ? "¿Confirmar?" : "Eliminar"}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        )}
+        </div>
       </div>
 
       {/* Create / Edit modal */}

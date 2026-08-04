@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plan: Módulo de Facturación Electrónica</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #161b27;
+      --surface2: #1e2535;
+      --border: #2a3347;
+      --green: #22c55e;
+      --green-dim: #166534;
+      --green-bg: #052e16;
+      --blue: #3b82f6;
+      --blue-dim: #1d4ed8;
+      --blue-bg: #0c1a3a;
+      --amber: #f59e0b;
+      --amber-bg: #271a03;
+      --red: #ef4444;
+      --red-bg: #2d0a0a;
+      --purple: #a855f7;
+      --purple-bg: #1e0a3a;
+      --cyan: #06b6d4;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --muted2: #94a3b8;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    .container { max-width: 960px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    .header .badge {
+      display: inline-block;
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-dim);
+      border-radius: 999px;
+      padding: 0.25rem 0.875rem;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 0.5rem;
+    }
+    .header p {
+      color: var(--muted2);
+      font-size: 15px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Stats row */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1rem;
+      text-align: center;
+    }
+    .stat .num {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #f8fafc;
+      display: block;
+    }
+    .stat .lbl {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Section title */
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Flow diagram */
+    .flow {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    .flow-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f8fafc;
+      margin-bottom: 1.5rem;
+    }
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0;
+    }
+    .flow-node {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.625rem 1rem;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      position: relative;
+    }
+    .flow-node.green { border-color: var(--green-dim); color: var(--green); background: var(--green-bg); }
+    .flow-node.blue { border-color: var(--blue-dim); color: var(--blue); background: var(--blue-bg); }
+    .flow-node.amber { border-color: #78350f; color: var(--amber); background: var(--amber-bg); }
+    .flow-node.red { border-color: #7f1d1d; color: var(--red); background: var(--red-bg); }
+    .flow-node.purple { border-color: #6b21a8; color: var(--purple); background: var(--purple-bg); }
+    .flow-arrow {
+      color: var(--muted);
+      font-size: 16px;
+      padding: 0 0.375rem;
+      flex-shrink: 0;
+    }
+    .flow-sub {
+      font-size: 10px;
+      color: var(--muted);
+      display: block;
+      font-weight: 400;
+      margin-top: 2px;
+    }
+
+    /* Tasks grid */
+    .tasks {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .task {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      transition: border-color 0.15s;
+    }
+    .task:hover { border-color: #3a4663; }
+    .task-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .task-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .task-num.db { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-dim); }
+    .task-num.lib { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-dim); }
+    .task-num.api { background: var(--amber-bg); color: var(--amber); border: 1px solid #78350f; }
+    .task-num.ui { background: var(--purple-bg); color: var(--purple); border: 1px solid #6b21a8; }
+    .task-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f8fafc;
+      line-height: 1.3;
+    }
+    .task-desc {
+      font-size: 12px;
+      color: var(--muted2);
+      margin-bottom: 0.875rem;
+      line-height: 1.5;
+    }
+    .task-files {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .task-file {
+      font-size: 10.5px;
+      font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+      color: var(--muted2);
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+    .task-file .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+    .task-file.new .dot { background: var(--green); }
+    .task-file.mod .dot { background: var(--amber); }
+
+    /* Architecture section */
+    .arch {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .arch-layer {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .arch-layer-header {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .arch-layer-header.green { color: var(--green); background: var(--green-bg); }
+    .arch-layer-header.blue { color: var(--blue); background: var(--blue-bg); }
+    .arch-layer-header.amber { color: var(--amber); background: var(--amber-bg); }
+    .arch-layer-header.purple { color: var(--purple); background: var(--purple-bg); }
+    .arch-items {
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .arch-item {
+      font-size: 11.5px;
+      font-family: 'SF Mono', 'Cascadia Code', monospace;
+      color: var(--muted2);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .arch-item::before {
+      content: '›';
+      color: var(--muted);
+    }
+
+    /* Encryption section */
+    .encryption {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      margin-bottom: 2rem;
+    }
+    .enc-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #f8fafc;
+      margin-bottom: 1.25rem;
+    }
+    .enc-flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .enc-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.875rem;
+      text-align: center;
+    }
+    .enc-box .enc-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 0.375rem;
+    }
+    .enc-box .enc-val {
+      font-size: 12px;
+      font-family: monospace;
+      color: var(--muted2);
+    }
+    .enc-box.highlight { border-color: var(--amber); background: var(--amber-bg); }
+    .enc-box.highlight .enc-val { color: var(--amber); }
+    .enc-arrow {
+      text-align: center;
+      color: var(--muted);
+      font-size: 18px;
+    }
+    .enc-note {
+      margin-top: 1rem;
+      font-size: 11.5px;
+      color: var(--muted2);
+      background: var(--green-bg);
+      border: 1px solid var(--green-dim);
+      border-radius: 6px;
+      padding: 0.625rem 0.875rem;
+    }
+
+    /* Queue section */
+    .queue {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      margin-bottom: 2rem;
+    }
+    .queue-title { font-size: 14px; font-weight: 600; color: #f8fafc; margin-bottom: 1.25rem; }
+    .states {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+    .state-badge {
+      padding: 0.375rem 0.875rem;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .state-badge.pendiente { background: #1c2333; color: var(--muted2); border: 1px solid var(--border); }
+    .state-badge.emitida { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-dim); }
+    .state-badge.fallida { background: var(--red-bg); color: var(--red); border: 1px solid #7f1d1d; }
+    .state-badge.anulada { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+    .transitions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .transition {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 12px;
+      color: var(--muted2);
+    }
+    .transition .from { color: var(--muted); font-family: monospace; }
+    .transition .arr { color: var(--muted); }
+    .transition .to { font-family: monospace; }
+    .transition .how { color: var(--muted); font-style: italic; }
+
+    /* DB schema */
+    .schema {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .table-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .table-header {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .table-name {
+      font-family: monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--cyan);
+    }
+    .table-tag {
+      font-size: 10px;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: var(--blue-bg);
+      color: var(--blue);
+      border: 1px solid var(--blue-dim);
+    }
+    .col-list {
+      padding: 0.75rem 0;
+    }
+    .col {
+      padding: 0.3rem 1rem;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 0.5rem;
+      align-items: center;
+      font-size: 11.5px;
+    }
+    .col:hover { background: var(--surface2); }
+    .col-name { font-family: monospace; color: #e2e8f0; }
+    .col-type { font-family: monospace; color: var(--muted); font-size: 10.5px; }
+    .col-note { font-size: 10px; color: var(--muted); text-align: right; }
+    .col-pk .col-name { color: var(--amber); }
+    .col-fk .col-name { color: var(--blue); }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+      margin-bottom: 2rem;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--border);
+    }
+    .tl-item {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+    .tl-item::before {
+      content: '';
+      position: absolute;
+      left: -1.625rem;
+      top: 5px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+      border: 2px solid var(--bg);
+    }
+    .tl-item.db::before { background: var(--green); }
+    .tl-item.lib::before { background: var(--blue); }
+    .tl-item.api::before { background: var(--amber); }
+    .tl-item.ui::before { background: var(--purple); }
+    .tl-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .tl-label.db { color: var(--green); }
+    .tl-label.lib { color: var(--blue); }
+    .tl-label.api { color: var(--amber); }
+    .tl-label.ui { color: var(--purple); }
+    .tl-title { font-size: 13px; font-weight: 600; color: #f8fafc; margin-bottom: 0.25rem; }
+    .tl-desc { font-size: 12px; color: var(--muted2); }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 11px;
+      color: var(--muted2);
+    }
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* Env vars table */
+    .env-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+    .env-table th {
+      text-align: left;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .env-table td {
+      padding: 0.6rem 0.75rem;
+      font-size: 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .env-table tr:last-child td { border-bottom: none; }
+    .env-table .key { font-family: monospace; color: var(--cyan); }
+    .env-table .where { color: var(--muted2); }
+    .env-table .desc { color: var(--muted2); font-size: 11px; }
+    .env-table .critical { color: var(--red); font-size: 10px; font-weight: 600; }
+
+    /* Warning box */
+    .warning {
+      background: var(--red-bg);
+      border: 1px solid #7f1d1d;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+      font-size: 12.5px;
+      color: #fca5a5;
+      display: flex;
+      gap: 0.75rem;
+    }
+    .warning .icon { font-size: 16px; flex-shrink: 0; }
+
+    /* Info box */
+    .info {
+      background: var(--blue-bg);
+      border: 1px solid var(--blue-dim);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+      font-size: 12.5px;
+      color: #93c5fd;
+      display: flex;
+      gap: 0.75rem;
+    }
+    .info .icon { font-size: 16px; flex-shrink: 0; }
+
+    code {
+      font-family: 'SF Mono', 'Cascadia Code', monospace;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1em 0.4em;
+      font-size: 0.9em;
+      color: var(--cyan);
+    }
+
+    @media (max-width: 600px) {
+      .enc-flow { grid-template-columns: 1fr; }
+      .enc-arrow { transform: rotate(90deg); }
+      .flow-diagram { flex-direction: column; align-items: flex-start; }
+      .flow-arrow { transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">Plan de implementación</div>
+    <h1>Módulo de Facturación Electrónica</h1>
+    <p>Integración con ARCA (ex-AFIP) para emisión automática de comprobantes al confirmar reservas, con fallback manual y configuración segura por superadmin.</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <span class="num">10</span>
+      <span class="lbl">Tareas</span>
+    </div>
+    <div class="stat">
+      <span class="num">~22</span>
+      <span class="lbl">Horas estimadas</span>
+    </div>
+    <div class="stat">
+      <span class="num">15</span>
+      <span class="lbl">Archivos nuevos</span>
+    </div>
+    <div class="stat">
+      <span class="num">3</span>
+      <span class="lbl">Archivos modificados</span>
+    </div>
+    <div class="stat">
+      <span class="num">2</span>
+      <span class="lbl">Tablas SQL</span>
+    </div>
+  </div>
+
+  <!-- Full flow -->
+  <p class="section-title">Flujo completo de una factura</p>
+  <div class="flow">
+    <p class="flow-title">Happy path — reserva confirmada → factura emitida automáticamente</p>
+    <div class="flow-diagram">
+      <div class="flow-node green">Reserva confirmada<span class="flow-sub">estado → "confirmada"</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node blue">emitirFactura()<span class="flow-sub">lib/facturacion/emitir.ts</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node amber">INSERT comprobantes<span class="flow-sub">estado = "pendiente"</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node purple">WSAA<span class="flow-sub">Token + Sign (12hs cache)</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node purple">WSFE FECAESolicitar<span class="flow-sub">serviciosweb.afip.gov.ar</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node green">CAE recibido<span class="flow-sub">UPDATE estado = "emitida"</span></div>
+    </div>
+  </div>
+
+  <div class="flow">
+    <p class="flow-title">Sad path — ARCA caído o error → cron reintenta / admin gestiona manualmente</p>
+    <div class="flow-diagram">
+      <div class="flow-node amber">Error ARCA / timeout<span class="flow-sub">catch en emitirFactura()</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node amber">UPDATE comprobantes<span class="flow-sub">estado = "fallida", intentos++</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node blue">Cron cada 10 min<span class="flow-sub">/api/admin/facturacion/procesar-cola</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node blue">FEDummy health check<span class="flow-sub">¿ARCA está OK?</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node green">Reintentar (max 3)<span class="flow-sub">o Admin ingresa CAE manual</span></div>
+    </div>
+  </div>
+
+  <!-- Architecture layers -->
+  <p class="section-title">Capas de la arquitectura</p>
+  <div class="arch">
+    <div class="arch-layer">
+      <div class="arch-layer-header green">Base de datos (Supabase)</div>
+      <div class="arch-items">
+        <div class="arch-item">config_facturacion</div>
+        <div class="arch-item">comprobantes</div>
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-header blue">Librerías (lib/facturacion/)</div>
+      <div class="arch-items">
+        <div class="arch-item">crypto.ts — AES-256-GCM</div>
+        <div class="arch-item">afip-client.ts — SDK setup</div>
+        <div class="arch-item">emitir.ts — lógica core</div>
+        <div class="arch-item">types.ts — TypeScript types</div>
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-header amber">API Routes</div>
+      <div class="arch-items">
+        <div class="arch-item">config/facturacion — GET/PATCH</div>
+        <div class="arch-item">facturacion — GET list / POST</div>
+        <div class="arch-item">facturacion/[id] — detail/retry</div>
+        <div class="arch-item">facturacion/status — health</div>
+        <div class="arch-item">facturacion/procesar-cola — cron</div>
+      </div>
+    </div>
+    <div class="arch-layer">
+      <div class="arch-layer-header purple">UI (components/admin/facturacion/)</div>
+      <div class="arch-items">
+        <div class="arch-item">FacturacionClient.tsx</div>
+        <div class="arch-item">ConfigFacturacionTab.tsx</div>
+        <div class="arch-item">ComprobantesTab.tsx</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Encryption -->
+  <p class="section-title">Estrategia de encriptación del certificado</p>
+  <div class="encryption">
+    <p class="enc-title">¿Cómo se protege el certificado ARCA?</p>
+    <div class="enc-flow">
+      <div class="enc-box highlight">
+        <div class="enc-label">Solo en env var</div>
+        <div class="enc-val">ENCRYPTION_KEY<br/>(32 bytes hex)</div>
+      </div>
+      <div class="enc-arrow">→</div>
+      <div class="enc-box">
+        <div class="enc-label">Proceso en Node.js</div>
+        <div class="enc-val">AES-256-GCM<br/>encrypt(cert.pem)</div>
+      </div>
+      <div class="enc-arrow">→</div>
+      <div class="enc-box">
+        <div class="enc-label">Guardado en Supabase</div>
+        <div class="enc-val">cert_encrypted<br/>key_encrypted</div>
+      </div>
+    </div>
+    <div class="enc-note">
+      ✓ La <code>ENCRYPTION_KEY</code> nunca está en la DB — solo en env vars de Vercel.<br/>
+      ✓ El certificado en texto plano solo existe en RAM durante el llamado a ARCA.<br/>
+      ✓ El superadmin puede actualizar el cert desde la UI sin acceso al servidor.
+    </div>
+  </div>
+
+  <!-- States machine -->
+  <p class="section-title">Ciclo de vida de un comprobante</p>
+  <div class="queue">
+    <p class="queue-title">Estados posibles</p>
+    <div class="states">
+      <span class="state-badge pendiente">⏳ pendiente</span>
+      <span class="state-badge emitida">✓ emitida</span>
+      <span class="state-badge fallida">✗ fallida</span>
+      <span class="state-badge anulada">— anulada</span>
+    </div>
+    <div class="transitions">
+      <div class="transition">
+        <span class="from">pendiente</span>
+        <span class="arr">→</span>
+        <span class="to" style="color:var(--green)">emitida</span>
+        <span class="how">— ARCA responde con CAE</span>
+      </div>
+      <div class="transition">
+        <span class="from">pendiente</span>
+        <span class="arr">→</span>
+        <span class="to" style="color:var(--red)">fallida</span>
+        <span class="how">— error de ARCA o timeout</span>
+      </div>
+      <div class="transition">
+        <span class="from">fallida</span>
+        <span class="arr">→</span>
+        <span class="to" style="color:var(--green)">emitida</span>
+        <span class="how">— cron reintenta (max 3) o admin reintenta manual</span>
+      </div>
+      <div class="transition">
+        <span class="from">fallida</span>
+        <span class="arr">→</span>
+        <span class="to" style="color:var(--green)">emitida</span>
+        <span class="how">— admin ingresa CAE obtenido del portal ARCA</span>
+      </div>
+      <div class="transition">
+        <span class="from">fallida / pendiente</span>
+        <span class="arr">→</span>
+        <span class="to" style="color:var(--muted)">anulada</span>
+        <span class="how">— admin decide no emitir (cancelación de reserva, etc.)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DB Schema -->
+  <p class="section-title">Esquema de base de datos</p>
+  <div class="schema">
+    <div class="table-box">
+      <div class="table-header">
+        <span class="table-name">config_facturacion</span>
+        <span class="table-tag">1 sola fila</span>
+      </div>
+      <div class="col-list">
+        <div class="col col-pk">
+          <span class="col-name">id</span>
+          <span class="col-type">int</span>
+          <span class="col-note">PK = 1 siempre</span>
+        </div>
+        <div class="col">
+          <span class="col-name">cuit</span>
+          <span class="col-type">text</span>
+          <span class="col-note"></span>
+        </div>
+        <div class="col">
+          <span class="col-name">razon_social</span>
+          <span class="col-type">text</span>
+          <span class="col-note"></span>
+        </div>
+        <div class="col">
+          <span class="col-name">condicion_iva</span>
+          <span class="col-type">text</span>
+          <span class="col-note">monotributo | resp_inscripto</span>
+        </div>
+        <div class="col">
+          <span class="col-name">punto_venta</span>
+          <span class="col-type">int</span>
+          <span class="col-note"></span>
+        </div>
+        <div class="col">
+          <span class="col-name">afipsdk_token</span>
+          <span class="col-type">text</span>
+          <span class="col-note">de app.afipsdk.com</span>
+        </div>
+        <div class="col" style="background: rgba(245,158,11,0.05)">
+          <span class="col-name" style="color:var(--amber)">cert_encrypted</span>
+          <span class="col-type">text</span>
+          <span class="col-note" style="color:var(--amber)">AES-256-GCM</span>
+        </div>
+        <div class="col" style="background: rgba(245,158,11,0.05)">
+          <span class="col-name" style="color:var(--amber)">key_encrypted</span>
+          <span class="col-type">text</span>
+          <span class="col-note" style="color:var(--amber)">AES-256-GCM</span>
+        </div>
+        <div class="col">
+          <span class="col-name">modo</span>
+          <span class="col-type">text</span>
+          <span class="col-note">testing | produccion</span>
+        </div>
+        <div class="col">
+          <span class="col-name">activo</span>
+          <span class="col-type">boolean</span>
+          <span class="col-note">toggle global</span>
+        </div>
+      </div>
+    </div>
+    <div class="table-box">
+      <div class="table-header">
+        <span class="table-name">comprobantes</span>
+        <span class="table-tag">1 fila por factura</span>
+      </div>
+      <div class="col-list">
+        <div class="col col-pk">
+          <span class="col-name">id</span>
+          <span class="col-type">uuid</span>
+          <span class="col-note">PK</span>
+        </div>
+        <div class="col col-fk">
+          <span class="col-name">reserva_id</span>
+          <span class="col-type">uuid</span>
+          <span class="col-note">FK → reservas</span>
+        </div>
+        <div class="col">
+          <span class="col-name">tipo_cbte</span>
+          <span class="col-type">int</span>
+          <span class="col-note">11=Fac.C · 6=Fac.B</span>
+        </div>
+        <div class="col">
+          <span class="col-name">nro_cbte</span>
+          <span class="col-type">bigint</span>
+          <span class="col-note">null hasta confirmar ARCA</span>
+        </div>
+        <div class="col">
+          <span class="col-name">cae</span>
+          <span class="col-type">text</span>
+          <span class="col-note">14 dígitos de ARCA</span>
+        </div>
+        <div class="col">
+          <span class="col-name">importe</span>
+          <span class="col-type">numeric(12,2)</span>
+          <span class="col-note"></span>
+        </div>
+        <div class="col">
+          <span class="col-name">estado</span>
+          <span class="col-type">text</span>
+          <span class="col-note">pendiente/emitida/fallida/anulada</span>
+        </div>
+        <div class="col">
+          <span class="col-name">intentos</span>
+          <span class="col-type">int</span>
+          <span class="col-note">max 3 automáticos</span>
+        </div>
+        <div class="col" style="background: rgba(59,130,246,0.05)">
+          <span class="col-name" style="color:var(--blue)">datos_envio</span>
+          <span class="col-type">jsonb</span>
+          <span class="col-note">payload exacto a ARCA</span>
+        </div>
+        <div class="col" style="background: rgba(59,130,246,0.05)">
+          <span class="col-name" style="color:var(--blue)">datos_respuesta</span>
+          <span class="col-type">jsonb</span>
+          <span class="col-note">respuesta completa ARCA</span>
+        </div>
+        <div class="col">
+          <span class="col-name">ultimo_error</span>
+          <span class="col-type">text</span>
+          <span class="col-note">mensaje del último error</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tasks timeline -->
+  <p class="section-title">Tareas en orden</p>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Base de datos</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Librerías</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div>API Routes</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>UI Components</div>
+  </div>
+  <div class="timeline">
+    <div class="tl-item db">
+      <div class="tl-label db">Task 1 — Base de datos</div>
+      <div class="tl-title">SQL Migration: tablas config_facturacion y comprobantes</div>
+      <div class="tl-desc">Crear las dos tablas en Supabase. <code>config_facturacion</code> tiene fila única con id=1. <code>comprobantes</code> guarda cada intento con payload y respuesta completa de ARCA.</div>
+    </div>
+    <div class="tl-item lib">
+      <div class="tl-label lib">Task 2 — Librería</div>
+      <div class="tl-title">AES-256-GCM crypto + ENCRYPTION_KEY env var</div>
+      <div class="tl-desc">Funciones <code>encrypt()</code> y <code>decrypt()</code> en <code>lib/facturacion/crypto.ts</code>. Genera y agrega <code>ENCRYPTION_KEY</code> de 32 bytes a <code>.env</code> y Vercel.</div>
+    </div>
+    <div class="tl-item lib">
+      <div class="tl-label lib">Task 3 — Librería</div>
+      <div class="tl-title">TypeScript types + instalar @afipsdk/afip.js</div>
+      <div class="tl-desc">Types <code>ConfigFacturacion</code>, <code>Comprobante</code>, <code>ComprobanteEstado</code>. Instalar el SDK con npm.</div>
+    </div>
+    <div class="tl-item lib">
+      <div class="tl-label lib">Task 4 — Librería</div>
+      <div class="tl-title">Afip client + lógica core de emisión</div>
+      <div class="tl-desc"><code>getAfipClient()</code> carga config desde DB y desencripta cert/key. <code>emitirFactura()</code> crea registro pendiente → llama ARCA → actualiza con CAE o marca fallida.</div>
+    </div>
+    <div class="tl-item api">
+      <div class="tl-label api">Task 5 — API</div>
+      <div class="tl-title">Config API (solo superadmin) + status endpoint</div>
+      <div class="tl-desc"><code>GET/PATCH /api/admin/config/facturacion</code> — encripta cert/key antes de guardar, nunca los devuelve al cliente. <code>GET /api/admin/facturacion/status</code> — llama FEDummy de ARCA.</div>
+    </div>
+    <div class="tl-item api">
+      <div class="tl-label api">Task 6 — API</div>
+      <div class="tl-title">Comprobantes CRUD + cron worker</div>
+      <div class="tl-desc">Lista paginada con filtros, detalle por id, reintentar, anular, registrar CAE manual. Cron worker en <code>procesar-cola</code> que verifica salud de ARCA antes de reintentar.</div>
+    </div>
+    <div class="tl-item ui">
+      <div class="tl-label ui">Task 7 — UI</div>
+      <div class="tl-title">ConfigFacturacionTab (superadmin)</div>
+      <div class="tl-desc">Badge de estado ARCA con botón "Verificar". Formulario completo: CUIT, razón social, condición IVA, punto de venta, token SDK, modo testing/producción. Textarea para pegar cert.crt y key.pem.</div>
+    </div>
+    <div class="tl-item ui">
+      <div class="tl-label ui">Task 8 — UI</div>
+      <div class="tl-title">ComprobantesTab</div>
+      <div class="tl-desc">Tabla paginada con filtro por estado. Badges por estado. Acciones: reintentar, ver detalle, anular. Dialog de detalle con JSON del payload/respuesta ARCA y campo para CAE manual.</div>
+    </div>
+    <div class="tl-item ui">
+      <div class="tl-label ui">Task 9 — UI</div>
+      <div class="tl-title">Página /admin/facturacion + sidebar</div>
+      <div class="tl-desc">FacturacionClient con tabs "Comprobantes" (todos) y "Configuración" (solo superadmin). Agregar "Facturación" al AdminSidebar. Agregar cron a vercel.json.</div>
+    </div>
+    <div class="tl-item api">
+      <div class="tl-label api">Task 10 — API</div>
+      <div class="tl-title">Auto-emisión al confirmar reserva</div>
+      <div class="tl-desc">Modificar el PATCH de reservas para que cuando <code>estado → "confirmada"</code>, llame <code>emitirFactura()</code> en fire-and-forget. Si falla, el registro queda pendiente y el cron lo reintenta.</div>
+    </div>
+  </div>
+
+  <!-- Env vars -->
+  <p class="section-title">Variables de entorno necesarias</p>
+  <table class="env-table">
+    <thead>
+      <tr>
+        <th>Variable</th>
+        <th>Dónde va</th>
+        <th>Descripción</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="key">ENCRYPTION_KEY</td>
+        <td class="where">.env + Vercel env vars</td>
+        <td class="desc">64 chars hex (32 bytes). Genera con: <code>node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"</code><br/><span class="critical">⚠ NUNCA commitear — si se pierde, el cert guardado es irrecuperable</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="info">
+    <span class="icon">ℹ</span>
+    <span>El resto de la configuración (CUIT, punto de venta, token SDK, cert, key) se guarda en la tabla <code>config_facturacion</code> de Supabase y se gestiona desde la UI del superadmin. No hace falta más env vars.</span>
+  </div>
+
+  <!-- Warning -->
+  <div class="warning">
+    <span class="icon">⚠</span>
+    <div>
+      <strong>Antes de arrancar:</strong> Necesitás crear un punto de venta en el portal ARCA y registrarte en <strong>app.afipsdk.com</strong> para obtener el token. Sin eso, Task 4 no puede probarse. El certificado digital se tramita también en ARCA (ver instrucciones en el plan .md).
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

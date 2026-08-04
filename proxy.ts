@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import type { AdminSession } from "@/lib/auth";
+import { hasMinRole } from "@/lib/auth";
 
 const SECRET = new TextEncoder().encode(
   process.env.ADMIN_JWT_SECRET ?? "fallback-dev-secret-change-in-prod"
@@ -36,8 +37,16 @@ export async function proxy(request: NextRequest) {
       return response;
     }
 
-    // Protect /admin/empleados — superadmin only
-    if (pathname.startsWith("/admin/empleados") && session.rol !== "superadmin") {
+    // Protect /admin/modulos — root only
+    if (pathname.startsWith("/admin/modulos") && !hasMinRole(session, "root")) {
+      return NextResponse.redirect(new URL("/admin/grilla", request.url));
+    }
+
+    // Protect /admin/empleados and /admin/config — superadmin+
+    if (
+      (pathname.startsWith("/admin/empleados") || pathname.startsWith("/admin/config")) &&
+      !hasMinRole(session, "superadmin")
+    ) {
       return NextResponse.redirect(new URL("/admin/grilla", request.url));
     }
   }

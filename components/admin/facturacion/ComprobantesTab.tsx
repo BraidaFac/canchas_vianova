@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -27,7 +28,8 @@ import { toast } from "sonner";
 import { RefreshCw, Eye, RotateCcw, XCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import type { Comprobante, ComprobanteEstado } from "@/lib/types";
+import type { Comprobante, ComprobanteEstado } from "@/lib/facturacion/types";
+import { TabLoader } from "@/components/ui/tab-loader";
 
 const ESTADO_LABELS: Record<ComprobanteEstado, string> = {
   pendiente: "Pendiente",
@@ -52,6 +54,9 @@ const TIPO_LABELS: Record<number, string> = {
 };
 
 export function ComprobantesTab() {
+  const searchParams = useSearchParams();
+  const deepLinkId = searchParams.get("comprobante");
+
   const [comprobantes, setComprobantes] = useState<Comprobante[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -80,6 +85,20 @@ export function ComprobantesTab() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Deep link: ?comprobante=ID abre el detalle directamente
+  useEffect(() => {
+    if (!deepLinkId) return;
+    const target = comprobantes.find((c) => c.id === deepLinkId);
+    if (target) {
+      setDetalle(target);
+      return;
+    }
+    // No está en la página actual — fetch directo por ID
+    fetch(`/api/admin/facturacion/${deepLinkId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data) setDetalle(data as Comprobante); });
+  }, [deepLinkId, comprobantes]);
 
   async function handleReintentar(id: string) {
     setRetryingId(id);
@@ -177,8 +196,16 @@ export function ComprobantesTab() {
 
       {/* Tabla */}
       <div className="rounded-lg border border-border bg-card overflow-hidden">
+        {/* Column headers - siempre visibles */}
+        <div className="flex items-center h-9 px-4 gap-3 bg-muted/50 border-b border-border text-xs font-medium text-muted-foreground">
+          <div className="flex-1">Comprobante</div>
+          <div className="hidden md:block w-40 shrink-0">CAE</div>
+          <div className="w-24 shrink-0 text-right">Importe</div>
+          <div className="w-24 shrink-0">Estado</div>
+          <div className="w-20 shrink-0" />
+        </div>
         {loading && comprobantes.length === 0 ? (
-          <p className="text-sm text-muted-foreground px-4 py-6 text-center">Cargando...</p>
+          <TabLoader />
         ) : comprobantes.length === 0 ? (
           <p className="text-sm text-muted-foreground px-4 py-6 text-center">Sin comprobantes.</p>
         ) : (

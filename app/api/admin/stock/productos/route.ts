@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { requireAdmin } from "@/lib/api-auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function calcMargen(precio: number, costoNeto: number | null): number | null {
@@ -8,8 +8,8 @@ function calcMargen(precio: number, costoNeto: number | null): number | null {
 }
 
 export async function GET() {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  const auth = await requireAdmin();
+  if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
@@ -33,8 +33,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  const auth = await requireAdmin();
+  if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const body = await req.json();
   const {

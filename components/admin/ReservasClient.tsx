@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { Search, Plus, Pencil, X, MoreVertical } from "lucide-react";
+import { Search, Plus, Pencil, X, MoreVertical, List } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,9 +51,9 @@ function EstadoBadge({ estado }: { estado: string }) {
       label: "Confirmada",
       className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
     },
-    pendiente_pago: {
-      label: "Pend. pago",
-      className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+    completada: {
+      label: "Completada",
+      className: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
     },
     cancelada: {
       label: "Cancelada",
@@ -68,6 +68,8 @@ function EstadoBadge({ estado }: { estado: string }) {
   );
 }
 
+type CuentaBancaria = { id: string; nombre_display: string; alias?: string | null; activo: boolean };
+
 export default function ReservasClient({
   reservas,
   filtroEstado,
@@ -75,6 +77,7 @@ export default function ReservasClient({
   canchas,
   turnos,
   precioReglas,
+  cuentasBancarias,
 }: {
   reservas: Reserva[];
   filtroEstado: string;
@@ -82,6 +85,7 @@ export default function ReservasClient({
   canchas: Cancha[];
   turnos: Turno[];
   precioReglas: PrecioRegla[];
+  cuentasBancarias: CuentaBancaria[];
 }) {
   const router = useRouter();
   const [busqueda, setBusqueda] = useState(busquedaInicial);
@@ -125,7 +129,13 @@ export default function ReservasClient({
   return (
     <div className="flex flex-col h-full">
       <div className="px-4 py-3 border-b border-border bg-card">
-        <h1 className="text-base font-semibold mb-3">Reservas</h1>
+        <div className="flex items-center gap-2 mb-3">
+          <List size={16} className="text-[#133D34]" />
+          <h1 className="text-sm font-semibold">Reservas</h1>
+          {filtradas.length > 0 && (
+            <span className="text-xs text-muted-foreground">({filtradas.length})</span>
+          )}
+        </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1 sm:max-w-xs">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -143,7 +153,7 @@ export default function ReservasClient({
             <SelectContent>
               <SelectItem value="todas">Todas</SelectItem>
               <SelectItem value="confirmada">Confirmadas</SelectItem>
-              <SelectItem value="pendiente_pago">Pend. pago</SelectItem>
+              <SelectItem value="completada">Completadas</SelectItem>
               <SelectItem value="cancelada">Canceladas</SelectItem>
             </SelectContent>
           </Select>
@@ -160,14 +170,10 @@ export default function ReservasClient({
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
-        {filtradas.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
-            Sin reservas
-          </div>
-        ) : (
+      <div className="flex-1 overflow-auto p-4">
+        <div className="rounded-lg border border-border bg-card overflow-hidden">
           <table className="w-full text-xs">
-            <thead className="bg-muted/50 sticky top-0">
+            <thead className="bg-muted/50">
               <tr>
                 <th className="px-3 py-2 text-left font-medium text-muted-foreground">ID</th>
                 <th className="px-3 py-2 text-left font-medium text-muted-foreground">Cliente</th>
@@ -181,86 +187,92 @@ export default function ReservasClient({
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtradas.map((r) => {
-                return (
-                  <tr
-                    key={r.id}
-                    className="odd:bg-background even:bg-muted/30 hover:bg-accent/40 transition-colors cursor-pointer"
-                    onClick={() => setModalEdit(r)}
-                  >
-                    <td className="px-3 py-2.5 font-mono text-muted-foreground">
-                      {r.id_legible}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <div className="font-medium">{r.clientes?.nombre ?? "—"}</div>
-                      <div className="text-muted-foreground">{r.clientes?.telefono}</div>
-                    </td>
-                    <td className="px-3 py-2.5 hidden sm:table-cell">
-                      {r.canchas?.nombre ?? "—"}
-                    </td>
-                    <td className="px-3 py-2.5 hidden md:table-cell">
-                      {format(parseISO(r.fecha), "dd/MM/yyyy")}
-                    </td>
-                    <td className="px-3 py-2.5 font-mono hidden md:table-cell">
-                      {r.turnos?.hora_inicio.slice(0, 5) ?? "—"}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      {r.recurrente_id != null && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                          Fijo
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2.5 hidden sm:table-cell">
-                      <EstadoBadge estado={r.estado} />
-                    </td>
-                    <td className="px-3 py-2.5 text-right hidden sm:table-cell">
-                      <div>${r.monto_abonado.toLocaleString("es-AR")}</div>
-                      <div className="text-muted-foreground/60">/{r.monto_total.toLocaleString("es-AR")}</div>
-                    </td>
-                    <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
-                      {/* Desktop */}
-                      <div className="hidden sm:flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-6 w-6" title="Editar" onClick={() => setModalEdit(r)}>
-                          <Pencil size={11} />
-                        </Button>
-                        {r.estado !== "cancelada" && (
-                          <Button
-                            variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive" title="Cancelar"
-                            onClick={() => setCancelDialog(r)}
-                          >
-                            <X size={11} />
-                          </Button>
+              {filtradas.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="text-sm text-muted-foreground px-4 py-8 text-center">Sin reservas</td>
+                </tr>
+              ) : (
+                filtradas.map((r) => {
+                  return (
+                    <tr
+                      key={r.id}
+                      className="odd:bg-background even:bg-muted/30 hover:bg-accent/40 transition-colors cursor-pointer"
+                      onClick={() => setModalEdit(r)}
+                    >
+                      <td className="px-3 py-2.5 font-mono text-muted-foreground">
+                        {r.id_legible}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <div className="font-medium">{r.clientes?.nombre ?? "—"}</div>
+                        <div className="text-muted-foreground">{r.clientes?.telefono}</div>
+                      </td>
+                      <td className="px-3 py-2.5 hidden sm:table-cell">
+                        {r.canchas?.nombre ?? "—"}
+                      </td>
+                      <td className="px-3 py-2.5 hidden md:table-cell">
+                        {format(parseISO(r.fecha), "dd/MM/yyyy")}
+                      </td>
+                      <td className="px-3 py-2.5 font-mono hidden md:table-cell">
+                        {r.turnos?.hora_inicio.slice(0, 5) ?? "—"}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        {r.recurrente_id != null && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                            Fijo
+                          </span>
                         )}
-                      </div>
-                      {/* Mobile */}
-                      <div className="flex sm:hidden items-center justify-end">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical size={13} /></Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setModalEdit(r)}>
-                              <Pencil size={13} className="mr-2" />Editar
-                            </DropdownMenuItem>
-                            {r.estado !== "cancelada" && (
-                              <DropdownMenuItem
-                                className="text-destructive focus:text-destructive"
-                                onClick={() => setCancelDialog(r)}
-                              >
-                                <X size={13} className="mr-2" />Cancelar
+                      </td>
+                      <td className="px-3 py-2.5 hidden sm:table-cell">
+                        <EstadoBadge estado={r.estado} />
+                      </td>
+                      <td className="px-3 py-2.5 text-right hidden sm:table-cell">
+                        <div>${r.monto_abonado.toLocaleString("es-AR")}</div>
+                        <div className="text-muted-foreground/60">/{r.monto_total.toLocaleString("es-AR")}</div>
+                      </td>
+                      <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
+                        {/* Desktop */}
+                        <div className="hidden sm:flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" className="h-6 w-6" title="Editar" onClick={() => setModalEdit(r)}>
+                            <Pencil size={11} />
+                          </Button>
+                          {r.estado !== "cancelada" && (
+                            <Button
+                              variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive" title="Cancelar"
+                              onClick={() => setCancelDialog(r)}
+                            >
+                              <X size={11} />
+                            </Button>
+                          )}
+                        </div>
+                        {/* Mobile */}
+                        <div className="flex sm:hidden items-center justify-end">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical size={13} /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setModalEdit(r)}>
+                                <Pencil size={13} className="mr-2" />Editar
                               </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                              {r.estado !== "cancelada" && (
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() => setCancelDialog(r)}
+                                >
+                                  <X size={13} className="mr-2" />Cancelar
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
-        )}
+        </div>
       </div>
 
       {modalCreate && (
@@ -271,6 +283,7 @@ export default function ReservasClient({
           canchas={canchas}
           turnos={turnos}
           precioReglas={precioReglas}
+          cuentasBancarias={cuentasBancarias}
           reservasExistentes={reservas}
         />
       )}
@@ -283,6 +296,7 @@ export default function ReservasClient({
           canchas={canchas}
           turnos={turnos}
           precioReglas={precioReglas}
+          cuentasBancarias={cuentasBancarias}
           reserva={toReservaFull(modalEdit)}
         />
       )}

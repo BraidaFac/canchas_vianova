@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
+import AbrirCajaDialog from "@/components/admin/AbrirCajaDialog";
+import ReabrirCajaDialog from "@/components/admin/ReabrirCajaDialog";
 import type { CuentaBancaria, MedioPago } from "@/lib/facturacion/types";
 
 type PagoRow = {
@@ -41,12 +43,23 @@ function emptyRow(): PagoRow {
 export function PanelCobro({ reservaId, total, cuentasBancarias, onSuccess }: Props) {
   const [pagos, setPagos] = useState<PagoRow[]>([emptyRow()]);
   const [loading, setLoading] = useState(false);
+  const [abrirCajaOpen, setAbrirCajaOpen] = useState(false);
+  const [reabrirCajaOpen, setRreabrirCajaOpen] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState(false);
 
   const registrado = pagos.reduce((sum, p) => sum + (parseFloat(p.monto) || 0), 0);
   const completo = registrado >= total;
 
   function updateRow(idx: number, patch: Partial<PagoRow>) {
-    setPagos((prev) => prev.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+    setPagos((prev) => prev.map((r, i) => {
+      if (i !== idx) return r;
+      const updated = { ...r, ...patch };
+      // Auto-select primera cuenta bancaria activa al cambiar a transferencia
+      if (patch.medio_pago === "transferencia" && !updated.cuenta_bancaria_id) {
+        updated.cuenta_bancaria_id = cuentasBancarias.find((c) => c.activo)?.id ?? "";
+      }
+      return updated;
+    }));
   }
 
   function addRow() {
@@ -90,21 +103,23 @@ export function PanelCobro({ reservaId, total, cuentasBancarias, onSuccess }: Pr
       const json = await res.json();
 
       if (!res.ok) {
+        if (json.error === "caja_requerida") {
+          if (json.code === "jornada_vencida") {
+            toast.error("Hay una caja sin cerrar de otro día. Cerrala desde la sección Caja antes de continuar.");
+          } else if (json.code === "caja_cerrada_misma_jornada") {
+            setPendingSubmit(true);
+            setRreabrirCajaOpen(true);
+          } else {
+            setPendingSubmit(true);
+            setAbrirCajaOpen(true);
+          }
+          return;
+        }
         toast.error(json.error ?? "Error al registrar cobro");
         return;
       }
 
-      const nComprobantes = (json.comprobantes as unknown[]).length;
-      const nErrores = (json.errores_emision as unknown[] | undefined)?.length ?? 0;
-
-      if (nComprobantes > 0 && nErrores === 0) {
-        toast.success(`Cobro registrado. ${nComprobantes} factura(s) emitida(s).`);
-      } else if (nComprobantes > 0 && nErrores > 0) {
-        toast.success(`Cobro registrado. ${nErrores} factura(s) fallaron — revisar en Facturación.`);
-      } else {
-        toast.success("Cobro registrado.");
-      }
-
+      toast.success("Cobro registrado.");
       onSuccess();
     } finally {
       setLoading(false);
@@ -112,6 +127,7 @@ export function PanelCobro({ reservaId, total, cuentasBancarias, onSuccess }: Pr
   }
 
   return (
+    <>
     <div className="space-y-3">
       <p className="text-sm font-medium">Registrar cobro</p>
 
@@ -181,6 +197,7 @@ export function PanelCobro({ reservaId, total, cuentasBancarias, onSuccess }: Pr
             {/* Remove row */}
             {pagos.length > 1 && (
               <Button
+                type="button"
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
@@ -195,6 +212,7 @@ export function PanelCobro({ reservaId, total, cuentasBancarias, onSuccess }: Pr
 
       {/* Add row */}
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         className="h-7 gap-1.5 text-xs text-muted-foreground"
@@ -224,6 +242,7 @@ export function PanelCobro({ reservaId, total, cuentasBancarias, onSuccess }: Pr
 
       {/* Confirm */}
       <Button
+        type="button"
         size="sm"
         disabled={!completo || loading}
         onClick={handleConfirmar}
@@ -232,5 +251,23 @@ export function PanelCobro({ reservaId, total, cuentasBancarias, onSuccess }: Pr
         {loading ? "Registrando..." : "Confirmar cobro"}
       </Button>
     </div>
+    {abrirCajaOpen && (
+      <AbrirCajaDialog
+        open={true}
+        onClose={() => { setAbrirCajaOpen(false); setPendingSubmit(false); }}
+        onSuccess={() => { setAbrirCajaOpen(false); if (pendingSubmit) handleConfirmar(); }}
+        motivo="Para registrar este cobro necesitás abrir la caja primero."
+      />
+    )}
+    {reabrirCajaOpen && (
+      <ReabrirCajaDialog
+        open={true}
+        onClose={() => { setRreabrirCajaOpen(false); setPendingSubmit(false); }}
+        onSuccess={() => { setRreabrirCajaOpen(false); if (pendingSubmit) handleConfirmar(); }}
+        onAbrirNueva={() => { setRreabrirCajaOpen(false); setAbrirCajaOpen(true); }}
+        motivo="Para registrar este cobro necesitás que la caja esté abierta."
+      />
+    )}
+    </>
   );
 }

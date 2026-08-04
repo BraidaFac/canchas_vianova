@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth.server";
 import type { CobroOrigen, EstadoFiscal, PagoConComprobante } from "@/lib/facturacion/types";
 
 function deriveEstadoFiscal(pagos: PagoConComprobante[]): EstadoFiscal {
   const transferencias = pagos.filter((p) => p.medio_pago === "transferencia");
   if (transferencias.length === 0) return "sin_comprobante";
 
-  const todosFacturados = transferencias.every(
-    (p) => p.comprobante?.estado === "emitida"
-  );
-  if (todosFacturados) return "facturado";
+  const todosEmitidos = transferencias.every((p) => p.comprobante?.estado === "emitida");
+  if (todosEmitidos) return "facturado";
 
-  const algunoFacturado = transferencias.some(
-    (p) => p.comprobante?.estado === "emitida"
-  );
-  if (algunoFacturado) return "mixto";
+  const algunoEmitido = transferencias.some((p) => p.comprobante?.estado === "emitida");
+  if (algunoEmitido) return "mixto";
+
+  const algunoFallido = transferencias.some((p) => p.comprobante?.estado === "fallida");
+  if (algunoFallido) return "fallida";
+
+  const algunoPendiente = transferencias.some((p) => p.comprobante?.estado === "pendiente");
+  if (algunoPendiente) return "pendiente";
 
   return "sin_comprobante";
 }
@@ -64,9 +66,13 @@ export async function GET(request: NextRequest) {
     grouped.get(key)!.push({ ...pago, comprobante });
   }
 
-  // 3. Fetch origen details (reservas)
+  // 3. Fetch origen details (reservas and consumos)
   const reservaIds = [...grouped.entries()]
     .filter(([key]) => key.startsWith("reserva:"))
+    .map(([key]) => key.split(":")[1]);
+
+  const consumoIds = [...grouped.entries()]
+    .filter(([key]) => key.startsWith("consumo:"))
     .map(([key]) => key.split(":")[1]);
 
   const reservaMap = new Map<string, { id: string; id_legible: string; fecha: string }>();
@@ -78,6 +84,35 @@ export async function GET(request: NextRequest) {
     for (const r of reservas ?? []) reservaMap.set(r.id, r);
   }
 
+  // consumoReservaMap: consumo_id → reserva id_legible (only when linked)
+  const consumoReservaMap = new Map<string, string>();
+  if (consumoIds.length > 0) {
+    const { data: consumos } = await supabase
+      .from("consumos")
+      .select("id, reserva_id")
+      .in("id", consumoIds);
+
+    // Collect any reserva_ids from consumos not yet in reservaMap
+    const extraReservaIds = (consumos ?? [])
+      .map((c) => c.reserva_id)
+      .filter((rid): rid is string => !!rid && !reservaMap.has(rid));
+
+    if (extraReservaIds.length > 0) {
+      const { data: extraReservas } = await supabase
+        .from("reservas")
+        .select("id, id_legible, fecha")
+        .in("id", extraReservaIds);
+      for (const r of extraReservas ?? []) reservaMap.set(r.id, r);
+    }
+
+    for (const c of consumos ?? []) {
+      if (c.reserva_id) {
+        const r = reservaMap.get(c.reserva_id);
+        if (r) consumoReservaMap.set(c.id, r.id_legible);
+      }
+    }
+  }
+
   // 4. Build CobroOrigen array
   const cobros: CobroOrigen[] = [];
   for (const [key, pagos] of grouped) {
@@ -85,7 +120,8 @@ export async function GET(request: NextRequest) {
     const total = pagos.reduce((sum, p) => sum + Number(p.monto), 0);
     const estado_fiscal = deriveEstadoFiscal(pagos);
 
-    let descripcion = tipo === "consumo" ? "Consumo" : `Reserva sin datos`;
+    let descripcion = tipo === "consumo" ? "Consumo" : "Reserva sin datos";
+    let subtitulo: string | null = null;
     let fecha = pagos[0].created_at;
 
     if (tipo === "reserva") {
@@ -94,9 +130,12 @@ export async function GET(request: NextRequest) {
         descripcion = `Reserva #${r.id_legible}`;
         fecha = r.fecha;
       }
+    } else {
+      const reservaLegible = consumoReservaMap.get(origenId);
+      if (reservaLegible) subtitulo = `→ Reserva #${reservaLegible}`;
     }
 
-    cobros.push({ id: origenId, tipo, descripcion, fecha, total, estado_fiscal, pagos });
+    cobros.push({ id: origenId, tipo, descripcion, subtitulo, fecha, total, estado_fiscal, pagos });
   }
 
   // 5. Sort by fecha desc and paginate

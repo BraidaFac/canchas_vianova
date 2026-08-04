@@ -21,8 +21,10 @@ import {
 import { X } from "lucide-react";
 import { DatePicker } from "@/components/ui/date-picker";
 import CancelReservaDialog from "./CancelReservaDialog";
+import { PanelCobro } from "@/components/admin/reservas/PanelCobro";
 import { resolvePrecio } from "@/lib/precio-reglas";
 import type { PrecioRegla } from "@/lib/types";
+import type { CuentaBancaria } from "@/lib/facturacion/types";
 
 type Cancha = { id: number; nombre: string; tipo_cancha_id: number; tipo_cancha?: { nombre: string }; jugadores: number };
 type Turno = { id: number; hora_inicio: string; hora_fin: string };
@@ -48,6 +50,7 @@ type ReservaModalProps = {
   canchas: Cancha[];
   turnos: Turno[];
   precioReglas: PrecioRegla[];
+  cuentasBancarias: CuentaBancaria[];
   prefill?: {
     canchaId?: number;
     turnoId?: number;
@@ -72,6 +75,7 @@ export default function ReservaModal({
   canchas,
   turnos,
   precioReglas,
+  cuentasBancarias,
   prefill,
   reserva,
   reservasExistentes,
@@ -84,11 +88,9 @@ export default function ReservaModal({
   const [editMontoTotal, setEditMontoTotal] = useState(
     String(reserva?.monto_total ?? 0),
   );
-  const [editMontoAbonado, setEditMontoAbonado] = useState(
-    String(reserva?.monto_abonado ?? 0),
-  );
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [loadingCompletar, setLoadingCompletar] = useState(false);
+  const [showPanelCobro, setShowPanelCobro] = useState(false);
 
   // ── Create mode state ──
   // Client selection
@@ -131,8 +133,6 @@ export default function ReservaModal({
     const p = resolvePrecio(precioReglas, cancha.tipo_cancha_id, turno.hora_inicio, diaSemana, prefill.fecha);
     return p !== null ? String(p) : "";
   });
-  const [montoAbonado, setMontoAbonado] = useState("0");
-
   // Fijo
   const [esFijo, setEsFijo] = useState(false);
   const [fechaHasta, setFechaHasta] = useState("");
@@ -221,7 +221,6 @@ export default function ReservaModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           monto_total: Number(editMontoTotal),
-          monto_abonado: Number(editMontoAbonado),
         }),
       });
       if (!res.ok) {
@@ -238,21 +237,17 @@ export default function ReservaModal({
     }
   }
 
-  async function handleCompletar() {
+  async function handleCompletarTrasCobo() {
     setLoadingCompletar(true);
     try {
       const res = await fetch(`/api/admin/reservas/${reserva!.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          estado: "completada",
-          monto_total: Number(editMontoTotal),
-          monto_abonado: Number(editMontoAbonado),
-        }),
+        body: JSON.stringify({ estado: "completada" }),
       });
       if (!res.ok) {
         const err = await res.json();
-        toast.error(err.error ?? "Error al completar");
+        toast.error(err.error ?? "Error al completar reserva");
         return;
       }
       toast.success("Reserva completada");
@@ -270,13 +265,16 @@ export default function ReservaModal({
       toast.error("Completá cancha, turno y fecha");
       return;
     }
+    if (!selectedCliente && !(showNewCliente && newTelefono)) {
+      toast.error("Seleccioná o creá un cliente antes de confirmar");
+      return;
+    }
 
     const body: Record<string, unknown> = {
       cancha_id: Number(canchaId),
       turno_id: Number(turnoId),
       fecha,
       monto_total: Number(montoTotal) || 0,
-      monto_abonado: Number(montoAbonado) || 0,
       estado: "confirmada",
     };
 
@@ -377,77 +375,58 @@ export default function ReservaModal({
             </div>
 
             <form onSubmit={handleEditSubmit} className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground block mb-1">
-                    Monto Total
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={editMontoTotal}
-                    onChange={(e) => setEditMontoTotal(e.target.value)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground block mb-1">
-                    Monto Abonado
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={editMontoAbonado}
-                    onChange={(e) => setEditMontoAbonado(e.target.value)}
-                    className="h-8 text-sm"
-                  />
-                </div>
+              <div className="max-w-[140px]">
+                <label className="text-xs font-medium text-muted-foreground block mb-1">
+                  Monto Total
+                </label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={editMontoTotal}
+                  onChange={(e) => setEditMontoTotal(e.target.value)}
+                  disabled={reserva!.estado === "completada" || reserva!.estado === "cancelada"}
+                  className="h-8 text-sm"
+                />
               </div>
 
-              <div className="pt-2 flex flex-col gap-2">
-                {/* Completar — full width, with hint when disabled */}
-                {reserva!.estado !== "completada" &&
-                  reserva!.estado !== "cancelada" && (
+              {/* Completar reserva — abre PanelCobro, cobro obligatorio */}
+              {reserva!.estado === "confirmada" && (
+                <div className="border border-border rounded-lg p-3">
+                  {showPanelCobro ? (
+                    <>
+                      <p className="text-xs font-medium mb-3">
+                        Registrá el cobro para completar la reserva
+                      </p>
+                      <PanelCobro
+                        reservaId={reserva!.id}
+                        total={Number(editMontoTotal)}
+                        cuentasBancarias={cuentasBancarias}
+                        onSuccess={handleCompletarTrasCobo}
+                      />
+                      <button
+                        type="button"
+                        className="mt-2 text-xs text-muted-foreground hover:underline"
+                        onClick={() => setShowPanelCobro(false)}
+                      >
+                        Cancelar
+                      </button>
+                    </>
+                  ) : (
                     <Button
                       type="button"
                       size="sm"
-                      disabled={
-                        !(
-                          Number(editMontoTotal) > 0 &&
-                          Number(editMontoAbonado) === Number(editMontoTotal)
-                        ) ||
-                        loading ||
-                        loadingCompletar
-                      }
-                      onClick={handleCompletar}
-                      title={
-                        !(
-                          Number(editMontoTotal) > 0 &&
-                          Number(editMontoAbonado) === Number(editMontoTotal)
-                        )
-                          ? "El monto abonado debe coincidir con el monto total"
-                          : undefined
-                      }
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-40"
+                      disabled={loading || loadingCompletar}
+                      onClick={() => setShowPanelCobro(true)}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
                     >
-                      {loadingCompletar
-                        ? "Completando..."
-                        : "Completar reserva"}
+                      {loadingCompletar ? "Completando..." : "Completar reserva"}
                     </Button>
                   )}
-                {!(
-                  Number(editMontoTotal) > 0 &&
-                  Number(editMontoAbonado) === Number(editMontoTotal)
-                ) &&
-                  reserva!.estado !== "completada" &&
-                  reserva!.estado !== "cancelada" && (
-                    <p className="text-[11px] text-muted-foreground text-center -mt-1">
-                      El monto abonado debe coincidir con el total para
-                      completar
-                    </p>
-                  )}
+                </div>
+              )}
+
+              <div className="pt-1 flex flex-col gap-2">
                 <div className="flex gap-2 justify-between">
                   {reserva!.estado !== "cancelada" &&
                     reserva!.estado !== "completada" && (
@@ -461,14 +440,16 @@ export default function ReservaModal({
                         Cancelar reserva
                       </Button>
                     )}
-                  <Button
-                    type="submit"
-                    size="sm"
-                    disabled={loading || loadingCompletar}
-                    className="ml-auto"
-                  >
-                    {loading ? "Guardando..." : "Guardar"}
-                  </Button>
+                  {reserva!.estado === "confirmada" && (
+                    <Button
+                      type="submit"
+                      size="sm"
+                      disabled={loading || loadingCompletar}
+                      className="ml-auto"
+                    >
+                      {loading ? "Guardando..." : "Guardar"}
+                    </Button>
+                  )}
                 </div>
               </div>
             </form>
@@ -678,35 +659,19 @@ export default function ReservaModal({
               )}
 
               {/* Payment section */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground block mb-1">
-                    Monto Total
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="any"
-                    placeholder="0"
-                    value={montoTotal}
-                    onChange={(e) => setMontoTotal(e.target.value)}
-                    className="h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground block mb-1">
-                    Monto Abonado
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="any"
-                    placeholder="0"
-                    value={montoAbonado}
-                    onChange={(e) => setMontoAbonado(e.target.value)}
-                    className="h-8 text-sm"
-                  />
-                </div>
+              <div className="max-w-[140px]">
+                <label className="text-xs font-medium text-muted-foreground block mb-1">
+                  Monto Total
+                </label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder="0"
+                  value={montoTotal}
+                  onChange={(e) => setMontoTotal(e.target.value)}
+                  className="h-8 text-sm"
+                />
               </div>
 
               {/* Turno fijo — ocultar si se está materializando un fijo existente */}

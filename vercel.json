@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/admin/facturacion/procesar-cola",
+      "schedule": "*/10 * * * *"
+    }
+  ]
+}

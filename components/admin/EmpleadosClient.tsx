@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Pencil, UserX, UserCheck, MoreVertical } from "lucide-react";
+import { Plus, Pencil, UserX, UserCheck, MoreVertical, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -122,9 +122,15 @@ export default function EmpleadosClient({
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-border bg-card sticky top-0 z-10">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-base font-semibold">Empleados</h1>
+      <div className="px-4 py-3 border-b border-border bg-card">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Users size={16} className="text-[#133D34]" />
+            <h1 className="text-sm font-semibold">Empleados</h1>
+            {empleados.length > 0 && (
+              <span className="text-xs text-muted-foreground">({empleados.length})</span>
+            )}
+          </div>
           <Button size="sm" className="h-8" onClick={abrirCrear} title="Nuevo empleado">
             <Plus size={14} />
             <span className="hidden sm:inline">Nuevo empleado</span>
@@ -133,14 +139,10 @@ export default function EmpleadosClient({
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto">
-        {empleados.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
-            Sin empleados
-          </div>
-        ) : (
+      <div className="flex-1 overflow-auto p-4">
+        <div className="rounded-lg border border-border bg-card overflow-hidden">
           <table className="w-full text-xs">
-            <thead className="bg-muted/50 sticky top-0">
+            <thead className="bg-muted/50">
               <tr>
                 <th className="px-3 py-2 text-left font-medium text-muted-foreground">Nombre</th>
                 <th className="px-3 py-2 text-left font-medium text-muted-foreground hidden sm:table-cell">Teléfono</th>
@@ -150,84 +152,90 @@ export default function EmpleadosClient({
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {empleados.map((emp) => (
-                <tr
-                  key={emp.id}
-                  className={cn(
-                    "odd:bg-background even:bg-muted/30 hover:bg-accent/40 transition-colors",
-                    !emp.activo && "opacity-50"
-                  )}
-                >
-                  <td className="px-3 py-2.5">
-                    <span className="font-medium">{emp.nombre}</span>
-                    {emp.id === sessionId && (
-                      <span className="ml-2 text-[10px] text-muted-foreground">(vos)</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2.5 font-mono hidden sm:table-cell text-muted-foreground">
-                    {emp.telefono}
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <Badge
-                      variant={emp.rol === "superadmin" ? "default" : "secondary"}
-                      className="text-[10px] px-1.5 py-0"
-                    >
-                      {emp.rol === "superadmin" ? "Super Admin" : "Empleado"}
-                    </Badge>
-                  </td>
-                  <td className="px-3 py-2.5 hidden md:table-cell">
-                    <span className={cn(
-                      "text-[10px] font-medium px-1.5 py-0.5 rounded",
-                      emp.activo
-                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                        : "bg-muted text-muted-foreground"
-                    )}>
-                      {emp.activo ? "Activo" : "Inactivo"}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2.5">
-                    {/* Desktop */}
-                    <div className="hidden sm:flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={() => abrirEditar(emp)} title="Editar">
-                        <Pencil size={12} />
-                      </Button>
-                      <Button
-                        variant="ghost" size="icon"
-                        className={cn("h-6 w-6 text-muted-foreground", emp.activo ? "hover:text-destructive" : "hover:text-green-600")}
-                        onClick={() => toggleActivo(emp)}
-                        disabled={emp.id === sessionId}
-                        title={emp.activo ? "Desactivar" : "Activar"}
-                      >
-                        {emp.activo ? <UserX size={12} /> : <UserCheck size={12} />}
-                      </Button>
-                    </div>
-                    {/* Mobile */}
-                    <div className="flex sm:hidden items-center justify-end">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical size={13} /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => abrirEditar(emp)}>
-                            <Pencil size={13} className="mr-2" />Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            disabled={emp.id === sessionId}
-                            className={emp.activo ? "text-destructive focus:text-destructive" : "text-green-600 focus:text-green-600"}
-                            onClick={() => toggleActivo(emp)}
-                          >
-                            {emp.activo ? <UserX size={13} className="mr-2" /> : <UserCheck size={13} className="mr-2" />}
-                            {emp.activo ? "Desactivar" : "Activar"}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </td>
+              {empleados.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-sm text-muted-foreground px-4 py-8 text-center">Sin empleados</td>
                 </tr>
-              ))}
+              ) : (
+                empleados.map((emp) => (
+                  <tr
+                    key={emp.id}
+                    className={cn(
+                      "odd:bg-background even:bg-muted/30 hover:bg-accent/40 transition-colors",
+                      !emp.activo && "opacity-50"
+                    )}
+                  >
+                    <td className="px-3 py-2.5">
+                      <span className="font-medium">{emp.nombre}</span>
+                      {emp.id === sessionId && (
+                        <span className="ml-2 text-[10px] text-muted-foreground">(vos)</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2.5 font-mono hidden sm:table-cell text-muted-foreground">
+                      {emp.telefono}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <Badge
+                        variant={emp.rol === "superadmin" ? "default" : "secondary"}
+                        className="text-[10px] px-1.5 py-0"
+                      >
+                        {emp.rol === "superadmin" ? "Super Admin" : "Empleado"}
+                      </Badge>
+                    </td>
+                    <td className="px-3 py-2.5 hidden md:table-cell">
+                      <span className={cn(
+                        "text-[10px] font-medium px-1.5 py-0.5 rounded",
+                        emp.activo
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                          : "bg-muted text-muted-foreground"
+                      )}>
+                        {emp.activo ? "Activo" : "Inactivo"}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {/* Desktop */}
+                      <div className="hidden sm:flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={() => abrirEditar(emp)} title="Editar">
+                          <Pencil size={12} />
+                        </Button>
+                        <Button
+                          variant="ghost" size="icon"
+                          className={cn("h-6 w-6 text-muted-foreground", emp.activo ? "hover:text-destructive" : "hover:text-green-600")}
+                          onClick={() => toggleActivo(emp)}
+                          disabled={emp.id === sessionId}
+                          title={emp.activo ? "Desactivar" : "Activar"}
+                        >
+                          {emp.activo ? <UserX size={12} /> : <UserCheck size={12} />}
+                        </Button>
+                      </div>
+                      {/* Mobile */}
+                      <div className="flex sm:hidden items-center justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical size={13} /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => abrirEditar(emp)}>
+                              <Pencil size={13} className="mr-2" />Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              disabled={emp.id === sessionId}
+                              className={emp.activo ? "text-destructive focus:text-destructive" : "text-green-600 focus:text-green-600"}
+                              onClick={() => toggleActivo(emp)}
+                            >
+                              {emp.activo ? <UserX size={13} className="mr-2" /> : <UserCheck size={13} className="mr-2" />}
+                              {emp.activo ? "Desactivar" : "Activar"}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        )}
+        </div>
       </div>
 
       {/* Create / Edit dialog */}

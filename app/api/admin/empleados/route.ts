@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
 import { createHash } from "crypto";
+import { requireSuperAdmin } from "@/lib/api-auth";
 
 export async function POST(request: NextRequest) {
-  const session = await getSession();
-  if (!session || session.rol !== "superadmin") {
-    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-  }
+  const auth = await requireSuperAdmin();
+  if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const { nombre, telefono, username, pin, rol } = await request.json();
 

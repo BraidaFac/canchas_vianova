@@ -19,9 +19,11 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2 } from "lucide-react";
-import type { EntidadFiscal, CuentaBancaria, IvaAlicuota, ConfigModulos } from "@/lib/facturacion/types";
+import { Plus, Pencil, Trash2, Bot } from "lucide-react";
+import type { EntidadFiscal, CuentaBancaria, IvaAlicuota } from "@/lib/facturacion/types";
+import { TabLoader } from "@/components/ui/tab-loader";
 
 // ─── Entidades Fiscales ────────────────────────────────────────────────────────
 
@@ -174,7 +176,7 @@ function EntidadesFiscalesTab() {
 
       <div className="rounded-lg border border-border bg-card overflow-hidden">
         {loading ? (
-          <p className="px-4 py-6 text-sm text-muted-foreground text-center">Cargando...</p>
+          <TabLoader />
         ) : entidades.length === 0 ? (
           <p className="px-4 py-6 text-sm text-muted-foreground text-center">Sin entidades configuradas.</p>
         ) : (
@@ -315,6 +317,7 @@ type CuentaForm = {
   alias: string;
   entidad_fiscal_id: string;
   activo: boolean;
+  activo_bot: boolean;
 };
 
 function CuentasBancariasTab({ entidades }: { entidades: EntidadFiscal[] }) {
@@ -324,9 +327,10 @@ function CuentasBancariasTab({ entidades }: { entidades: EntidadFiscal[] }) {
   const [editing, setEditing] = useState<CuentaBancaria | null>(null);
   const [form, setForm] = useState<CuentaForm>({
     nombre_display: "", banco: "", cbu: "", alias: "",
-    entidad_fiscal_id: entidades[0]?.id ?? "", activo: true,
+    entidad_fiscal_id: entidades[0]?.id ?? "", activo: true, activo_bot: false,
   });
   const [saving, setSaving] = useState(false);
+  const [togglingBot, setTogglingBot] = useState<string | null>(null);
 
   async function fetchCuentas() {
     setLoading(true);
@@ -345,13 +349,13 @@ function CuentasBancariasTab({ entidades }: { entidades: EntidadFiscal[] }) {
 
   function openCreate() {
     setEditing(null);
-    setForm({ nombre_display: "", banco: "", cbu: "", alias: "", entidad_fiscal_id: entidades[0]?.id ?? "", activo: true });
+    setForm({ nombre_display: "", banco: "", cbu: "", alias: "", entidad_fiscal_id: entidades[0]?.id ?? "", activo: true, activo_bot: false });
     setDialogOpen(true);
   }
 
   function openEdit(c: CuentaBancaria) {
     setEditing(c);
-    setForm({ nombre_display: c.nombre_display, banco: c.banco ?? "", cbu: c.cbu ?? "", alias: c.alias ?? "", entidad_fiscal_id: c.entidad_fiscal_id, activo: c.activo });
+    setForm({ nombre_display: c.nombre_display, banco: c.banco ?? "", cbu: c.cbu ?? "", alias: c.alias ?? "", entidad_fiscal_id: c.entidad_fiscal_id, activo: c.activo, activo_bot: c.activo_bot });
     setDialogOpen(true);
   }
 
@@ -382,6 +386,24 @@ function CuentasBancariasTab({ entidades }: { entidades: EntidadFiscal[] }) {
     else { const json = await res.json().catch(() => ({})); toast.error((json as { error?: string }).error ?? "Error al eliminar"); }
   }
 
+  async function handleToggleBot(c: CuentaBancaria) {
+    if (c.activo_bot) return; // already active, clicking does nothing
+    setTogglingBot(c.id);
+    const res = await fetch(`/api/admin/cuentas-bancarias/${c.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ activo_bot: true }),
+    });
+    if (res.ok) {
+      toast.success("Cuenta activada para el bot");
+      fetchCuentas();
+    } else {
+      const json = await res.json().catch(() => ({}));
+      toast.error((json as { error?: string }).error ?? "Error");
+    }
+    setTogglingBot(null);
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -393,7 +415,7 @@ function CuentasBancariasTab({ entidades }: { entidades: EntidadFiscal[] }) {
 
       <div className="rounded-lg border border-border bg-card overflow-hidden">
         {loading ? (
-          <p className="px-4 py-6 text-sm text-muted-foreground text-center">Cargando...</p>
+          <TabLoader />
         ) : cuentas.length === 0 ? (
           <p className="px-4 py-6 text-sm text-muted-foreground text-center">Sin cuentas configuradas.</p>
         ) : (
@@ -401,8 +423,9 @@ function CuentasBancariasTab({ entidades }: { entidades: EntidadFiscal[] }) {
             {cuentas.map((c) => (
               <div key={c.id} className="flex items-center px-4 py-3 gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium">{c.nombre_display}</span>
+                    {c.activo_bot && <Badge className="text-[10px] px-1.5 py-0 gap-1"><Bot size={9} />Bot</Badge>}
                     {!c.activo && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Inactiva</Badge>}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
@@ -411,6 +434,20 @@ function CuentasBancariasTab({ entidades }: { entidades: EntidadFiscal[] }) {
                   </p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 ${c.activo_bot ? "text-primary" : "text-muted-foreground"}`}
+                        disabled={c.activo_bot || togglingBot === c.id}
+                        onClick={() => handleToggleBot(c)}
+                      >
+                        <Bot size={13} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{c.activo_bot ? "Cuenta activa del bot" : "Activar como cuenta del bot"}</TooltipContent>
+                  </Tooltip>
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(c)}><Pencil size={13} /></Button>
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDelete(c.id)}><Trash2 size={13} /></Button>
                 </div>
@@ -476,7 +513,7 @@ function AlicuotasIvaTab() {
       <p className="text-sm text-muted-foreground">Alícuotas IVA disponibles para comprobantes.</p>
       <div className="rounded-lg border border-border bg-card overflow-hidden">
         {loading ? (
-          <p className="px-4 py-4 text-sm text-muted-foreground text-center">Cargando...</p>
+          <TabLoader />
         ) : (
           <div className="divide-y divide-border">
             {alicuotas.map(a => (
@@ -489,73 +526,6 @@ function AlicuotasIvaTab() {
             ))}
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Módulos ──────────────────────────────────────────────────────────────────
-
-function ModulosTab() {
-  const [modulos, setModulos] = useState<ConfigModulos | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch("/api/admin/config/modulos")
-      .then(r => r.json())
-      .then(d => setModulos(d as ConfigModulos))
-      .catch(() => toast.error("Error al cargar módulos"))
-      .finally(() => setLoading(false));
-  }, []);
-
-  async function toggle(key: "facturacion" | "pos" | "stock") {
-    if (!modulos) return;
-    setSaving(key);
-    const newVal = !modulos[key];
-    const res = await fetch("/api/admin/config/modulos", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ [key]: newVal }),
-    });
-    if (res.ok) {
-      setModulos(prev => prev ? { ...prev, [key]: newVal } : prev);
-      toast.success("Módulo actualizado");
-    } else {
-      const json = await res.json().catch(() => ({}));
-      toast.error((json as { error?: string }).error ?? "Error al actualizar");
-    }
-    setSaving(null);
-  }
-
-  if (loading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
-  if (!modulos) return null;
-
-  const items: { key: "facturacion" | "pos" | "stock"; label: string; description: string }[] = [
-    { key: "facturacion", label: "Facturación electrónica", description: "Habilita la emisión de comprobantes AFIP/ARCA y la sección Facturación en el menú." },
-    { key: "pos", label: "POS", description: "Habilita el punto de venta y la sección POS en el menú." },
-    { key: "stock", label: "Stock", description: "Habilita la gestión de inventario y la sección Stock en el menú." },
-  ];
-
-  return (
-    <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">Activá o desactivá módulos del sistema.</p>
-      <div className="space-y-3">
-        {items.map(({ key, label, description }) => (
-          <div key={key} className="flex items-center justify-between px-4 py-3 rounded-lg border border-border bg-card">
-            <div>
-              <p className="text-sm font-medium">{label}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
-            </div>
-            <button
-              disabled={saving === key}
-              onClick={() => toggle(key)}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${modulos[key] ? "bg-primary" : "bg-input"}`}
-            >
-              <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-background shadow-lg transition-transform ${modulos[key] ? "translate-x-5" : "translate-x-0"}`} />
-            </button>
-          </div>
-        ))}
       </div>
     </div>
   );
@@ -593,7 +563,6 @@ export function ConfigFacturacionTab() {
           <TabsTrigger value="entidades">Entidades fiscales</TabsTrigger>
           <TabsTrigger value="cuentas">Cuentas bancarias</TabsTrigger>
           <TabsTrigger value="alicuotas">Alícuotas IVA</TabsTrigger>
-          <TabsTrigger value="modulos">Módulos</TabsTrigger>
         </TabsList>
         <TabsContent value="entidades" className="mt-4">
           <EntidadesFiscalesTab />
@@ -607,9 +576,6 @@ export function ConfigFacturacionTab() {
         </TabsContent>
         <TabsContent value="alicuotas" className="mt-4">
           <AlicuotasIvaTab />
-        </TabsContent>
-        <TabsContent value="modulos" className="mt-4">
-          <ModulosTab />
         </TabsContent>
       </Tabs>
     </div>

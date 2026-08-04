@@ -1,4 +1,4 @@
-export type ReservaEstado = "pendiente_pago" | "confirmada" | "cancelada";
+export type ReservaEstado = "confirmada" | "completada" | "cancelada";
 export type ReservaCanal = "whatsapp" | "web" | "manual";
 export type AdminRol = "admin" | "superadmin";
 
@@ -167,6 +167,38 @@ export type Compra = {
   empleado_id: string | null;
   created_at: string;
   items?: CompraItem[];
+};
+
+// ─── POS ────────────────────────────────────────────────────────────────────
+
+export type Consumo = {
+  id: string;
+  reserva_id: string | null;
+  empleado_id: string | null;
+  total: number;
+  notas: string | null;
+  created_at: string;
+  items?: ConsumoItem[];
+};
+
+export type ConsumoItem = {
+  id: string;
+  consumo_id: string;
+  producto_id: string;
+  cantidad: number;
+  precio_unitario: number;
+  producto?: Pick<Producto, 'id' | 'nombre'> | null;
+};
+
+export type ProductoPOS = Producto & {
+  categoria_nombre: string;
+  categoria_color: string;
+  total_vendido: number;
+};
+
+export type CarritoItem = {
+  producto: ProductoPOS;
+  cantidad: number;
 };
 
 export type {

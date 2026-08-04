@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Trash2, Check, X, Pencil } from "lucide-react";
 import type { Categoria } from "@/lib/types";
+import { TabLoader } from "@/components/ui/tab-loader";
 
 type EditRow = {
   nombre: string;
@@ -133,7 +134,7 @@ export function CategoriasTab() {
     toast.success("Categoría creada");
   }
 
-  if (loading) return <p className="text-muted-foreground text-sm">Cargando...</p>;
+  if (loading) return <TabLoader />;
 
   return (
     <div className="space-y-4">
@@ -144,15 +145,15 @@ export function CategoriasTab() {
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-md border">
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="text-left p-3 font-medium">Nombre</th>
-              <th className="text-left p-3 font-medium">Color</th>
-              <th className="text-left p-3 font-medium">Orden</th>
-              <th className="text-center p-3 font-medium">Activo</th>
-              <th className="text-right p-3 font-medium">Acciones</th>
+            <tr className="bg-muted/50 border-b border-border">
+              <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Nombre</th>
+              <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Color</th>
+              <th className="text-left px-4 py-2.5 text-xs font-medium text-muted-foreground">Orden</th>
+              <th className="text-center px-4 py-2.5 text-xs font-medium text-muted-foreground">Activo</th>
+              <th className="text-right px-4 py-2.5 text-xs font-medium text-muted-foreground">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -170,8 +171,8 @@ export function CategoriasTab() {
               const isDeleting = deleting[cat.id] ?? false;
 
               return (
-                <tr key={cat.id} className="border-b hover:bg-muted/30 transition-colors">
-                  <td className="p-3">
+                <tr key={cat.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-2.5">
                     {state === "edit" ? (
                       <Input
                         value={vals?.nombre ?? cat.nombre}
@@ -184,7 +185,7 @@ export function CategoriasTab() {
                       <span className="font-medium">{cat.nombre}</span>
                     )}
                   </td>
-                  <td className="p-3">
+                  <td className="px-4 py-2.5">
                     {state === "edit" ? (
                       <div className="flex items-center gap-2">
                         <input
@@ -203,7 +204,7 @@ export function CategoriasTab() {
                       </Badge>
                     )}
                   </td>
-                  <td className="p-3">
+                  <td className="px-4 py-2.5">
                     {state === "edit" ? (
                       <Input
                         type="number"
@@ -217,7 +218,7 @@ export function CategoriasTab() {
                       cat.orden
                     )}
                   </td>
-                  <td className="p-3 text-center">
+                  <td className="px-4 py-2.5 text-center">
                     {state === "edit" ? (
                       <input
                         type="checkbox"
@@ -233,7 +234,7 @@ export function CategoriasTab() {
                       </Badge>
                     )}
                   </td>
-                  <td className="p-3 text-right">
+                  <td className="px-4 py-2.5 text-right">
                     <div className="flex justify-end gap-1">
                       {state === "edit" ? (
                         <>
@@ -272,8 +273,8 @@ export function CategoriasTab() {
 
             {/* New row */}
             {addingNew && (
-              <tr className="border-b bg-muted/10">
-                <td className="p-3">
+              <tr className="border-b border-border bg-muted/10">
+                <td className="px-4 py-2.5">
                   <Input
                     value={newRow.nombre}
                     onChange={(e) => setNewRow((r) => ({ ...r, nombre: e.target.value }))}
@@ -282,7 +283,7 @@ export function CategoriasTab() {
                     autoFocus
                   />
                 </td>
-                <td className="p-3">
+                <td className="px-4 py-2.5">
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -293,7 +294,7 @@ export function CategoriasTab() {
                     <span className="text-xs text-muted-foreground">{newRow.color}</span>
                   </div>
                 </td>
-                <td className="p-3">
+                <td className="px-4 py-2.5">
                   <Input
                     type="number"
                     value={newRow.orden}
@@ -301,7 +302,7 @@ export function CategoriasTab() {
                     className="h-7 text-sm w-16"
                   />
                 </td>
-                <td className="p-3 text-center">
+                <td className="px-4 py-2.5 text-center">
                   <input
                     type="checkbox"
                     checked={newRow.activo}
@@ -309,7 +310,7 @@ export function CategoriasTab() {
                     className="h-4 w-4"
                   />
                 </td>
-                <td className="p-3 text-right">
+                <td className="px-4 py-2.5 text-right">
                   <div className="flex justify-end gap-1">
                     <Button size="sm" variant="ghost" onClick={handleCreate} disabled={creatingNew}>
                       <Check className="h-4 w-4 text-green-600" />

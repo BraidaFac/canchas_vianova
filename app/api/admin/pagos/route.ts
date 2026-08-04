@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
-import { emitirFactura } from "@/lib/facturacion/emitir";
+import { getSession } from "@/lib/auth.server";
+import { validarSesionActiva } from "@/lib/caja/validar";
 import type { MedioPago, OrigenTipo } from "@/lib/facturacion/types";
 
 type PagoInput = {
@@ -53,7 +53,26 @@ export async function POST(request: NextRequest) {
 
   const supabase = await createSupabaseServerClient();
 
-  // Verify origen_id exists (only reserva supported now; consumo table added in future plan)
+  // Validar sesión de caja activa
+  const { data: modulos } = await supabase
+    .from("config_modulos")
+    .select("caja_cutoff_hour")
+    .eq("id", 1)
+    .single();
+
+  const cutoffHour = modulos?.caja_cutoff_hour ?? 7;
+  const cajaValidation = await validarSesionActiva(supabase, cutoffHour);
+
+  if (!cajaValidation.ok) {
+    return NextResponse.json(
+      { error: "caja_requerida", code: cajaValidation.code },
+      { status: 422 }
+    );
+  }
+
+  const sesionCajaId = cajaValidation.sesion.id;
+
+  // Verify origen_id exists
   if (origen_tipo === "reserva") {
     const { data: reserva } = await supabase
       .from("reservas")
@@ -65,7 +84,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Insert all pagos
+  // Insert pagos con sesion_caja_id
   const insertRows = pagosInput.map((p) => ({
     origen_tipo,
     origen_id,
@@ -73,6 +92,7 @@ export async function POST(request: NextRequest) {
     monto: Number(p.monto),
     cuenta_bancaria_id: p.cuenta_bancaria_id ?? null,
     empleado_id: session.id,
+    sesion_caja_id: sesionCajaId,
   }));
 
   const { data: pagosCreados, error: pagosErr } = await supabase
@@ -84,38 +104,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: pagosErr?.message ?? "Error al crear pagos" }, { status: 500 });
   }
 
-  // For each transferencia pago, attempt to emit factura
-  const comprobantes: unknown[] = [];
-  const erroresEmision: { pago_id: string; error: string }[] = [];
+  // NOTA: emitirFactura ya no se llama aquí.
+  // La facturación se dispara al cerrar caja desde /api/admin/caja/cerrar.
 
-  for (let i = 0; i < pagosCreados.length; i++) {
-    const pago = pagosCreados[i];
-    if (pago.medio_pago === "transferencia") {
-      try {
-        const result = await emitirFactura({
-          pago_id: pago.id,
-          nombre_receptor: pagosInput[i].nombre_receptor,
-        });
-        // Fetch the created comprobante
-        const { data: cbte } = await supabase
-          .from("comprobantes")
-          .select("*")
-          .eq("id", result.comprobanteId)
-          .single();
-        if (cbte) comprobantes.push(cbte);
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        erroresEmision.push({ pago_id: pago.id, error: msg });
-      }
-    }
-  }
-
-  return NextResponse.json(
-    {
-      pagos: pagosCreados,
-      comprobantes,
-      ...(erroresEmision.length > 0 ? { errores_emision: erroresEmision } : {}),
-    },
-    { status: 201 }
-  );
+  return NextResponse.json({ pagos: pagosCreados }, { status: 201 });
 }

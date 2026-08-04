@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -19,24 +20,38 @@ import {
   Wallet,
   ShoppingCart,
   Package,
+  Layers,
+  ShoppingBag,
+  Landmark,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { AdminSession } from "@/lib/auth";
+import { AdminSession, hasMinRole, type Role } from "@/lib/auth";
 import { toast } from "sonner";
 
-const navItems = [
-  { href: "/admin/grilla", label: "Grilla", icon: CalendarDays },
-  { href: "/admin/reservas", label: "Reservas", icon: List },
-  { href: "/admin/clientes", label: "Clientes", icon: Contact },
-  { href: "/admin/eventos", label: "Eventos", icon: Trophy },
-  { href: "/admin/cobros", label: "Cobros", icon: Wallet },
-  { href: "/admin/empleados", label: "Empleados", icon: Users, superadminOnly: true },
-  { href: "/admin/facturacion", label: "Facturación", icon: Receipt, requiresFacturacion: true },
-  { href: "/admin/pos", label: "POS", icon: ShoppingCart, requiresPos: true },
-  { href: "/admin/stock", label: "Stock", icon: Package, requiresStock: true },
-  { href: "/admin/config", label: "Configuración", icon: Settings },
+const navItems: Array<{
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ size?: number }>;
+  minRole?: Role;
+  requiresFacturacion?: boolean;
+  requiresPos?: boolean;
+  requiresStock?: boolean;
+}> = [
+  { href: "/admin/grilla",     label: "Grilla",         icon: CalendarDays },
+  { href: "/admin/reservas",   label: "Reservas",        icon: List },
+  { href: "/admin/clientes",   label: "Clientes",        icon: Contact },
+  { href: "/admin/eventos",    label: "Eventos",         icon: Trophy },
+  { href: "/admin/cobros",     label: "Cobros",          icon: Wallet },
+  { href: "/admin/caja",       label: "Caja",            icon: Landmark,     requiresPos: true },
+  { href: "/admin/empleados",  label: "Empleados",       icon: Users,        minRole: "superadmin" },
+  { href: "/admin/facturacion",label: "Facturación",     icon: Receipt,      requiresFacturacion: true },
+  { href: "/admin/pos",        label: "POS",             icon: ShoppingCart, requiresPos: true },
+  { href: "/admin/consumos",  label: "Consumos",        icon: ShoppingBag,  requiresPos: true },
+  { href: "/admin/stock",      label: "Stock",           icon: Package,      requiresStock: true },
+  { href: "/admin/config",     label: "Configuración",   icon: Settings,     minRole: "superadmin" },
+  { href: "/admin/modulos",    label: "Módulos",         icon: Layers,       minRole: "root" },
 ];
 
 type Props = {
@@ -61,7 +76,7 @@ export default function AdminSidebar({
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const visibleItems = navItems.filter((item) => {
-    if (item.superadminOnly && session.rol !== "superadmin") return false;
+    if (item.minRole && !hasMinRole(session, item.minRole)) return false;
     if (item.requiresFacturacion && !facturacionActiva) return false;
     if (item.requiresPos && !posActivo) return false;
     if (item.requiresStock && !stockActivo) return false;

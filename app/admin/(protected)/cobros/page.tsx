@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth.server";
 import { redirect } from "next/navigation";
 import CobrosClient from "@/components/admin/CobrosClient";
 

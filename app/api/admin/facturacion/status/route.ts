@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth.server";
 import { getAfipClientDefault } from "@/lib/facturacion/afip-client";
 
 export async function GET() {

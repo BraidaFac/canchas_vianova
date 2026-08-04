@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
 import { encrypt } from "@/lib/facturacion/crypto";
-
-async function requireSuperAdmin() {
-  const session = await getSession();
-  if (!session) return { error: "No autorizado", status: 401 as const };
-  if (session.rol !== "superadmin") return { error: "Requiere superadmin", status: 403 as const };
-  return { session };
-}
+import { requireSuperAdmin } from "@/lib/api-auth";
 
 export async function PATCH(
   request: NextRequest,

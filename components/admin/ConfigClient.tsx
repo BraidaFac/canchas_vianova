@@ -6,11 +6,12 @@ import { useForm } from "react-hook-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { Trash2, AlertTriangle, Pencil, Plus, Power } from "lucide-react";
+import { Trash2, AlertTriangle, Pencil, Plus, Power, Settings } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -33,6 +34,7 @@ import {
 import type { PrecioRegla, TipoCancha } from "@/lib/types";
 import { DatePicker } from "@/components/ui/date-picker";
 import { TimePicker } from "@/components/ui/time-picker";
+import { ConfigFacturacionTab } from "@/components/admin/facturacion/ConfigFacturacionTab";
 
 const DIAS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
@@ -47,14 +49,6 @@ type Cancha = {
   activa: boolean;
 };
 type Espacio = { id: number; nombre: string; activo: boolean };
-type DatosBancarios = {
-  id: number;
-  nombre_cuenta: string;
-  alias: string;
-  cbu: string;
-  vigente_desde: string;
-  activo: boolean;
-};
 type Disponibilidad = { cancha_id: number; dia_semana: number; habilitada: boolean };
 type Turno = { id: number; hora_inicio: string; hora_fin: string };
 type BotConfig = { clave: string; valor: string; descripcion: string | null; updated_at: string };
@@ -62,23 +56,25 @@ type BotConfig = { clave: string; valor: string; descripcion: string | null; upd
 export default function ConfigClient({
   canchas,
   precioReglas,
-  datosBancarios,
   disponibilidad: initialDisponibilidad,
   turnos: initialTurnos,
   botConfig,
   esSuperAdmin = false,
+  esRoot = false,
   tiposCancha,
   espacios,
+  cutoffHour,
 }: {
   canchas: Cancha[];
   precioReglas: PrecioRegla[];
-  datosBancarios: DatosBancarios[];
   disponibilidad: Disponibilidad[];
   turnos: Turno[];
   botConfig: BotConfig[];
   esSuperAdmin?: boolean;
+  esRoot?: boolean;
   tiposCancha: TipoCancha[];
   espacios: Espacio[];
+  cutoffHour: number;
 }) {
   const router = useRouter();
   const [disponibilidad, setDisponibilidad] = useState(initialDisponibilidad);
@@ -142,21 +138,30 @@ export default function ConfigClient({
   return (
     <div className="flex flex-col h-full">
       <div className="px-4 py-3 border-b border-border bg-card">
-        <h1 className="text-base font-semibold">Configuración</h1>
+        <div className="flex items-center gap-2">
+          <Settings size={16} className="text-[#133D34]" />
+          <h1 className="text-sm font-semibold">Configuración</h1>
+        </div>
       </div>
 
       <div className="flex-1 overflow-auto p-4">
-        <Tabs defaultValue="estructura" className="max-w-3xl">
+        <Tabs defaultValue="estructura" className="w-full">
           <div className="overflow-x-auto mb-4 scrollbar-hide">
             <TabsList className="w-max">
+              <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="estructura">Canchas y tipos</TabsTrigger>
               <TabsTrigger value="disponibilidad">Disponibilidad</TabsTrigger>
               <TabsTrigger value="turnos">Turnos</TabsTrigger>
               <TabsTrigger value="precios">Precios</TabsTrigger>
-              <TabsTrigger value="bancarios">Datos bancarios</TabsTrigger>
-              {esSuperAdmin && <TabsTrigger value="bot">Bot n8n</TabsTrigger>}
+              {esRoot && <TabsTrigger value="bot">Bot n8n</TabsTrigger>}
+              {esSuperAdmin && <TabsTrigger value="facturacion">Facturación</TabsTrigger>}
             </TabsList>
           </div>
+
+          {/* GENERAL */}
+          <TabsContent value="general">
+            <GeneralTab cutoffHour={cutoffHour} />
+          </TabsContent>
 
           {/* ESTRUCTURA */}
           <TabsContent value="estructura">
@@ -257,46 +262,83 @@ export default function ConfigClient({
             />
           </TabsContent>
 
-          {/* BOT N8N — solo superadmin */}
-          {esSuperAdmin && (
+          {/* BOT N8N — solo root */}
+          {esRoot && (
             <TabsContent value="bot">
               <BotConfigTab botConfig={botConfig} onSaved={() => router.refresh()} />
             </TabsContent>
           )}
 
-          {/* DATOS BANCARIOS */}
-          <TabsContent value="bancarios">
-            <div className="space-y-4">
-              <DatosBancariosForm onSaved={() => router.refresh()} />
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Historial</p>
-                {datosBancarios.map((db) => (
-                  <div
-                    key={db.id}
-                    className="px-4 py-3 rounded-lg border border-border bg-card text-sm"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="font-medium">{db.nombre_cuenta}</span>
-                        <span className="mx-2 text-muted-foreground">·</span>
-                        <span className="font-mono">{db.alias}</span>
-                      </div>
-                      {db.activo && (
-                        <Badge variant="default" className="text-[10px]">
-                          Activo
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      CBU: {db.cbu} · Desde{" "}
-                      {format(parseISO(db.vigente_desde), "dd/MM/yyyy")}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
+          {/* FACTURACIÓN — solo superadmin */}
+          {esSuperAdmin && (
+            <TabsContent value="facturacion">
+              <ConfigFacturacionTab />
+            </TabsContent>
+          )}
+
         </Tabs>
+      </div>
+    </div>
+  );
+}
+
+// ─── General Tab ─────────────────────────────────────────────────────────────
+
+function GeneralTab({ cutoffHour: initialCutoff }: { cutoffHour: number }) {
+  const [cutoff, setCutoff] = useState(String(initialCutoff));
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    const val = parseInt(cutoff);
+    if (isNaN(val) || val < 0 || val > 23) {
+      toast.error("El horario debe ser entre 0 y 23");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/config/general", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ caja_cutoff_hour: val }),
+      });
+      if (!res.ok) {
+        const j = await res.json();
+        toast.error(j.error ?? "Error al guardar");
+        return;
+      }
+      toast.success("Configuración guardada");
+    } catch {
+      toast.error("Error de conexión");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="space-y-6 max-w-md">
+      <div>
+        <h3 className="text-sm font-semibold mb-4">Configuración de caja</h3>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="cutoff_hour" className="text-sm">Hora de corte de jornada</Label>
+            <Input
+              id="cutoff_hour"
+              type="number"
+              min="0"
+              max="23"
+              value={cutoff}
+              onChange={(e) => setCutoff(e.target.value)}
+              className="w-24"
+            />
+            <p className="text-xs text-muted-foreground">
+              Pagos registrados antes de esta hora pertenecen a la jornada del día anterior.
+              Default: 7 (07:00hs). Ideal para negocios nocturnos.
+            </p>
+          </div>
+          <Button size="sm" onClick={handleSave} disabled={saving}>
+            {saving ? "Guardando..." : "Guardar"}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -1345,74 +1387,3 @@ function CanchasSection({
   );
 }
 
-// ─── Datos bancarios form ────────────────────────────────────────────────────
-
-function DatosBancariosForm({ onSaved }: { onSaved: () => void }) {
-  const { register, handleSubmit, reset } = useForm<{
-    nombre_cuenta: string;
-    alias: string;
-    cbu: string;
-  }>();
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-
-  async function onSubmit(data: { nombre_cuenta: string; alias: string; cbu: string }) {
-    setLoading(true);
-    const res = await fetch("/api/admin/config/bancarios", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (res.ok) {
-      toast.success("Datos bancarios actualizados");
-      reset();
-      setOpen(false);
-      onSaved();
-    } else {
-      toast.error("Error al guardar");
-    }
-    setLoading(false);
-  }
-
-  if (!open) {
-    return (
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-        + Agregar nuevos datos bancarios
-      </Button>
-    );
-  }
-
-  return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="p-4 rounded-lg border border-border bg-card space-y-3"
-    >
-      <p className="text-sm font-medium">Nuevos datos bancarios</p>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div>
-          <label className="text-xs text-muted-foreground">Nombre cuenta</label>
-          <Input {...register("nombre_cuenta", { required: true })} className="mt-1 h-8 text-sm" />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground">Alias</label>
-          <Input {...register("alias", { required: true })} className="mt-1 h-8 text-sm" />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground">CBU</label>
-          <Input
-            {...register("cbu", { required: true })}
-            className="mt-1 h-8 text-sm font-mono"
-          />
-        </div>
-      </div>
-      <div className="flex gap-2">
-        <Button type="submit" size="sm" disabled={loading}>
-          Guardar
-        </Button>
-        <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>
-          Cancelar
-        </Button>
-      </div>
-    </form>
-  );
-}

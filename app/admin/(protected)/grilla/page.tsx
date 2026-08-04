@@ -89,7 +89,7 @@ export default async function GrillaPage({
       .from("reservas")
       .select("id, id_legible, estado, canal, cancha_id, turno_id, monto_total, monto_abonado, recurrente_id, fecha, clientes(nombre, telefono)")
       .eq("fecha", fecha)
-      .in("estado", ["pendiente_pago", "confirmada", "cancelada"]),
+      .in("estado", ["confirmada", "completada", "cancelada"]),
 
     // Vista Lista: próximos 15 días (canceladas incluidas para suprimir fijo)
     supabase
@@ -97,7 +97,7 @@ export default async function GrillaPage({
       .select("id, id_legible, estado, canal, cancha_id, turno_id, monto_total, monto_abonado, recurrente_id, fecha, clientes(nombre, telefono)")
       .gte("fecha", today)
       .lte("fecha", endDate)
-      .in("estado", ["pendiente_pago", "confirmada", "cancelada"]),
+      .in("estado", ["confirmada", "completada", "cancelada"]),
 
     // Todos los fijos activos
     supabase

@@ -56,7 +56,7 @@ export default function TurnosSection() {
         return r.json();
       })
       .then((data: TurnosCanchas) => {
-        setAllTurnos(data);
+        setAllTurnos(data ?? []);
         setLoading(false);
       })
       .catch(() => {

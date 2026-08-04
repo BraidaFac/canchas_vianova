@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth.server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export async function GET(req: NextRequest) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  const { searchParams } = new URL(req.url);
+  const fecha = searchParams.get("fecha") ?? new Date().toISOString().slice(0, 10);
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("reservas")
+    .select("id, id_legible, fecha, estado, monto_total, monto_abonado, clientes(id, nombre, telefono), canchas(nombre), turnos(hora_inicio, hora_fin)")
+    .eq("fecha", fecha)
+    .not("estado", "eq", "cancelada")
+    .order("created_at", { ascending: true })
+    .limit(50);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json(data ?? []);
+}
 
 function generateIdLegible(fecha: string): string {
   // fecha is YYYY-MM-DD → take last 6 as YYMMDD
@@ -31,7 +51,7 @@ export async function POST(req: NextRequest) {
     fecha,
     monto_total,
     monto_abonado = 0,
-    estado = "pendiente_pago",
+    estado = "confirmada",
     es_fijo = false,
     fecha_hasta,
     recurrente_id: recurrenteIdDirect,

@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@afipsdk/afip.js": "^1.2.3",
     "@hookform/resolvers": "^5.4.0",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-scroll-area": "^1.2.9",

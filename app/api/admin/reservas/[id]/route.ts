@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth.server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 export async function PATCH(
   req: NextRequest,
@@ -44,7 +44,7 @@ export async function PATCH(
       .eq("recurrente_id", data.recurrente_id)
       .neq("id", id)
       .gte("fecha", today)
-      .in("estado", ["pendiente_pago", "confirmada"]);
+      .in("estado", ["confirmada"]);
     if (futureErr) {
       return NextResponse.json({ error: futureErr.message }, { status: 400 });
     }

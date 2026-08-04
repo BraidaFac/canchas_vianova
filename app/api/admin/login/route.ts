@@ -21,9 +21,13 @@ export async function POST(request: NextRequest) {
     .eq("pin_hash", pinHash)
     .eq("activo", true)
     .single();
+  console.log(error);
 
   if (error || !admin) {
-    return NextResponse.json({ error: "Credenciales incorrectas" }, { status: 401 });
+    return NextResponse.json(
+      { error: "Credenciales incorrectas" },
+      { status: 401 },
+    );
   }
 
   const token = await signSession({
@@ -33,7 +37,11 @@ export async function POST(request: NextRequest) {
     telefono: admin.telefono,
   });
 
-  const response = NextResponse.json({ ok: true, nombre: admin.nombre, rol: admin.rol });
+  const response = NextResponse.json({
+    ok: true,
+    nombre: admin.nombre,
+    rol: admin.rol,
+  });
   response.cookies.set(getSessionCookieConfig(token));
   return response;
 }

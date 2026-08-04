@@ -585,7 +585,7 @@ export default function EventosClient({
   return (
     <div className="flex flex-col h-full">
       {/* ── Header ── */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card shrink-0">
         <div className="flex items-center gap-2">
           <Trophy size={16} className="text-[#133D34]" />
           <h1 className="text-sm font-semibold">Eventos</h1>
@@ -640,35 +640,10 @@ export default function EventosClient({
       </div>
 
       {/* ── Table ── */}
-      <div className="flex-1 overflow-auto">
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 h-64 text-muted-foreground">
-            <Trophy size={32} className="opacity-20" />
-            <div className="text-center">
-              <p className="text-sm font-medium">
-                {eventos.length === 0 ? "No hay eventos todavía" : "Sin resultados"}
-              </p>
-              <p className="text-xs mt-0.5">
-                {eventos.length === 0
-                  ? "Creá el primer evento con el botón de arriba"
-                  : "Probá cambiando los filtros"}
-              </p>
-            </div>
-            {eventos.length === 0 && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-1.5 mt-1"
-                onClick={() => { setEditTarget(null); setFormOpen(true); }}
-              >
-                <Plus size={13} />
-                Nuevo evento
-              </Button>
-            )}
-          </div>
-        ) : (
+      <div className="flex-1 overflow-auto p-4">
+        <div className="rounded-lg border border-border bg-card overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-muted/60 backdrop-blur-sm border-b border-border">
+            <thead className="bg-muted/50 border-b border-border">
               <tr>
                 <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2.5">Nombre</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-3 py-2.5 hidden sm:table-cell">Tipo</th>
@@ -679,126 +654,132 @@ export default function EventosClient({
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.map((evento) => (
-                <tr
-                  key={evento.id}
-                  className={cn(
-                    "group hover:bg-muted/40 transition-colors",
-                    isPending && "opacity-60"
-                  )}
-                >
-                  {/* Nombre */}
-                  <td className="px-4 py-3">
-                    <span className="font-medium text-sm">{evento.nombre}</span>
-                    {evento.notas && (
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{evento.notas}</p>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-sm text-muted-foreground px-4 py-8 text-center">Sin eventos</td>
+                </tr>
+              ) : (
+                filtered.map((evento) => (
+                  <tr
+                    key={evento.id}
+                    className={cn(
+                      "group hover:bg-muted/40 transition-colors",
+                      isPending && "opacity-60"
                     )}
-                    {/* Mobile: tipo inline */}
-                    <div className="flex items-center gap-2 mt-1 sm:hidden">
-                      <TipoBadge tipo={evento.tipo} />
-                    </div>
-                  </td>
-
-                  {/* Tipo */}
-                  <td className="px-3 py-3 hidden sm:table-cell">
-                    <TipoBadge tipo={evento.tipo} />
-                  </td>
-
-                  {/* Período */}
-                  <td className="px-3 py-3 hidden md:table-cell">
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <CalendarRange size={12} />
-                      <span>
-                        {formatFecha(evento.fecha_inicio)} – {formatFecha(evento.fecha_fin)}
-                      </span>
-                    </div>
-                  </td>
-
-                  {/* Slots */}
-                  <td className="px-3 py-3 hidden lg:table-cell">
-                    {evento.evento_slots.length > 0 ? (
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Layers size={12} />
-                        <span>{evento.evento_slots.length} slot{evento.evento_slots.length !== 1 ? "s" : ""}</span>
+                  >
+                    {/* Nombre */}
+                    <td className="px-4 py-3">
+                      <span className="font-medium text-sm">{evento.nombre}</span>
+                      {evento.notas && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{evento.notas}</p>
+                      )}
+                      {/* Mobile: tipo inline */}
+                      <div className="flex items-center gap-2 mt-1 sm:hidden">
+                        <TipoBadge tipo={evento.tipo} />
                       </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground/50">—</span>
-                    )}
-                  </td>
+                    </td>
 
-                  {/* Estado */}
-                  <td className="px-3 py-3">
-                    <EstadoBadge estado={evento.estado} />
-                  </td>
+                    {/* Tipo */}
+                    <td className="px-3 py-3 hidden sm:table-cell">
+                      <TipoBadge tipo={evento.tipo} />
+                    </td>
 
-                  {/* Acciones */}
-                  <td className="px-3 py-3">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <MoreVertical size={14} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        <DropdownMenuItem
-                          className="text-xs gap-2"
-                          onClick={() => { setEditTarget(evento); setFormOpen(true); }}
-                        >
-                          <Pencil size={12} />
-                          Editar
-                        </DropdownMenuItem>
+                    {/* Período */}
+                    <td className="px-3 py-3 hidden md:table-cell">
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <CalendarRange size={12} />
+                        <span>
+                          {formatFecha(evento.fecha_inicio)} – {formatFecha(evento.fecha_fin)}
+                        </span>
+                      </div>
+                    </td>
 
-                        <DropdownMenuSeparator />
+                    {/* Slots */}
+                    <td className="px-3 py-3 hidden lg:table-cell">
+                      {evento.evento_slots.length > 0 ? (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Layers size={12} />
+                          <span>{evento.evento_slots.length} slot{evento.evento_slots.length !== 1 ? "s" : ""}</span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground/50">—</span>
+                      )}
+                    </td>
 
-                        {evento.estado !== "finalizado" && (
+                    {/* Estado */}
+                    <td className="px-3 py-3">
+                      <EstadoBadge estado={evento.estado} />
+                    </td>
+
+                    {/* Acciones */}
+                    <td className="px-3 py-3">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <MoreVertical size={14} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuItem
                             className="text-xs gap-2"
-                            onClick={() => setEstadoTarget({ evento, nuevoEstado: "finalizado" })}
+                            onClick={() => { setEditTarget(evento); setFormOpen(true); }}
                           >
-                            <Clock3 size={12} />
-                            Marcar finalizado
+                            <Pencil size={12} />
+                            Editar
                           </DropdownMenuItem>
-                        )}
-                        {evento.estado !== "activo" && (
-                          <DropdownMenuItem
-                            className="text-xs gap-2"
-                            onClick={() => setEstadoTarget({ evento, nuevoEstado: "activo" })}
-                          >
-                            <CheckCircle2 size={12} />
-                            Marcar activo
-                          </DropdownMenuItem>
-                        )}
-                        {evento.estado !== "cancelado" && (
+
+                          <DropdownMenuSeparator />
+
+                          {evento.estado !== "finalizado" && (
+                            <DropdownMenuItem
+                              className="text-xs gap-2"
+                              onClick={() => setEstadoTarget({ evento, nuevoEstado: "finalizado" })}
+                            >
+                              <Clock3 size={12} />
+                              Marcar finalizado
+                            </DropdownMenuItem>
+                          )}
+                          {evento.estado !== "activo" && (
+                            <DropdownMenuItem
+                              className="text-xs gap-2"
+                              onClick={() => setEstadoTarget({ evento, nuevoEstado: "activo" })}
+                            >
+                              <CheckCircle2 size={12} />
+                              Marcar activo
+                            </DropdownMenuItem>
+                          )}
+                          {evento.estado !== "cancelado" && (
+                            <DropdownMenuItem
+                              className="text-xs gap-2 text-destructive focus:text-destructive"
+                              onClick={() => setEstadoTarget({ evento, nuevoEstado: "cancelado" })}
+                            >
+                              <XCircle size={12} />
+                              Cancelar evento
+                            </DropdownMenuItem>
+                          )}
+
+                          <DropdownMenuSeparator />
+
                           <DropdownMenuItem
                             className="text-xs gap-2 text-destructive focus:text-destructive"
-                            onClick={() => setEstadoTarget({ evento, nuevoEstado: "cancelado" })}
+                            onClick={() => setDeleteTarget(evento)}
                           >
-                            <XCircle size={12} />
-                            Cancelar evento
+                            <Trash2 size={12} />
+                            Eliminar
                           </DropdownMenuItem>
-                        )}
-
-                        <DropdownMenuSeparator />
-
-                        <DropdownMenuItem
-                          className="text-xs gap-2 text-destructive focus:text-destructive"
-                          onClick={() => setDeleteTarget(evento)}
-                        >
-                          <Trash2 size={12} />
-                          Eliminar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </td>
-                </tr>
-              ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        )}
+        </div>
       </div>
 
       {/* ── Dialogs ── */}

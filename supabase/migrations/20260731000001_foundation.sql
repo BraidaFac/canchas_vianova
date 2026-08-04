@@ -57,7 +57,7 @@ CREATE TABLE pagos (
   medio_pago          text NOT NULL CHECK (medio_pago IN ('efectivo','transferencia','otro')),
   monto               numeric NOT NULL CHECK (monto > 0),
   cuenta_bancaria_id  uuid REFERENCES cuentas_bancarias(id),
-  empleado_id         uuid REFERENCES empleados(id),
+  empleado_id         uuid REFERENCES admins(id),
   created_at          timestamptz DEFAULT now()
 );
 
