@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { normalizePhone } from "@/lib/utils";
 
 export async function PATCH(
   req: NextRequest,
@@ -14,7 +15,7 @@ export async function PATCH(
 
   const update: Record<string, unknown> = {};
   if (body.nombre !== undefined) update.nombre = body.nombre;
-  if (body.telefono !== undefined) update.telefono = body.telefono;
+  if (body.telefono !== undefined) update.telefono = normalizePhone(body.telefono);
 
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "Nada que actualizar" }, { status: 400 });

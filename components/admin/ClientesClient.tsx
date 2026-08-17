@@ -62,7 +62,9 @@ export default function ClientesClient({ clientes: initialClientes }: { clientes
 
   function openEdit(c: Cliente) {
     setFormNombre(c.nombre ?? "");
-    setFormTelefono(c.telefono);
+    // Strip "549" prefix so the admin sees only the local part
+    const localPart = c.telefono.startsWith("54") ? c.telefono.slice(2) : c.telefono;
+    setFormTelefono(localPart);
     setModal({ mode: "edit", cliente: c });
   }
 
@@ -84,7 +86,7 @@ export default function ClientesClient({ clientes: initialClientes }: { clientes
         const res = await fetch("/api/admin/clientes", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ telefono: formTelefono.trim(), nombre: formNombre.trim() || null }),
+          body: JSON.stringify({ telefono: "54" + formTelefono.trim(), nombre: formNombre.trim() || null }),
         });
         if (!res.ok) {
           const err = await res.json();
@@ -96,7 +98,7 @@ export default function ClientesClient({ clientes: initialClientes }: { clientes
         const res = await fetch(`/api/admin/clientes/${modal.cliente.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ telefono: formTelefono.trim(), nombre: formNombre.trim() || null }),
+          body: JSON.stringify({ telefono: "54" + formTelefono.trim(), nombre: formNombre.trim() || null }),
         });
         if (!res.ok) {
           const err = await res.json();
@@ -255,13 +257,19 @@ export default function ClientesClient({ clientes: initialClientes }: { clientes
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground block mb-1">Teléfono *</label>
-              <Input
-                placeholder="+54 9 ..."
-                value={formTelefono}
-                onChange={(e) => setFormTelefono(e.target.value)}
-                className="h-8 text-sm"
-                required
-              />
+              <div className="flex items-center h-8 rounded-md border border-input bg-background text-sm overflow-hidden focus-within:ring-1 focus-within:ring-ring">
+                <span className="px-2.5 text-muted-foreground font-mono bg-muted border-r border-input select-none h-full flex items-center text-xs">
+                  +54
+                </span>
+                <input
+                  type="tel"
+                  placeholder="1155550002"
+                  value={formTelefono}
+                  onChange={(e) => setFormTelefono(e.target.value.replace(/\D/g, ""))}
+                  className="flex-1 px-2.5 bg-transparent outline-none h-full font-mono"
+                  required
+                />
+              </div>
             </div>
             <DialogFooter className="pt-2">
               <Button type="button" variant="outline" size="sm" onClick={closeModal} disabled={loading}>

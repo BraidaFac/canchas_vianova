@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { normalizePhone } from "@/lib/utils";
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
@@ -43,9 +44,11 @@ export async function POST(req: NextRequest) {
 
   const supabase = await createSupabaseServerClient();
 
+  const telefonoNorm = normalizePhone(telefono)
+
   const { data, error } = await supabase
     .from("clientes")
-    .upsert({ telefono, nombre: nombre ?? telefono }, { onConflict: "telefono" })
+    .upsert({ telefono: telefonoNorm, nombre: nombre ?? telefonoNorm }, { onConflict: "telefono" })
     .select("id, nombre, telefono")
     .single();
 

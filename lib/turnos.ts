@@ -72,9 +72,12 @@ export async function getTurnosDisponibles(): Promise<TurnosCanchas | null> {
     const [, month, day] = (row.fecha as string).split("-");
     const fechaKey = `${day}/${month}`;
 
+    const horaInicio = (row.hora_inicio as string).slice(0, 5);
+    if (horaInicio < "14:00") continue;
+
     const turno: Turno = {
       id: row.turno_id,
-      horaInicio: (row.hora_inicio as string).slice(0, 5),
+      horaInicio,
       horaFin: (row.hora_fin as string).slice(0, 5),
     };
 

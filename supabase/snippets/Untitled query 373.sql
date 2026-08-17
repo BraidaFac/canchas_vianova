@@ -1,0 +1,1 @@
+  ALTER TABLE sesiones_bot ADD COLUMN IF NOT EXISTS datos_pendientes JSONB;
