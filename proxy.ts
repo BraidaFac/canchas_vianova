@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
+import { SECRET, hasMinRole } from "@/lib/auth";
 import type { AdminSession } from "@/lib/auth";
-
-const SECRET = new TextEncoder().encode(
-  process.env.ADMIN_JWT_SECRET ?? "fallback-dev-secret-change-in-prod"
-);
 
 async function verifyToken(token: string): Promise<AdminSession | null> {
   try {
@@ -37,7 +34,7 @@ export async function proxy(request: NextRequest) {
     }
 
     // Protect /admin/empleados — superadmin only
-    if (pathname.startsWith("/admin/empleados") && session.rol !== "superadmin") {
+    if (pathname.startsWith("/admin/empleados") && !hasMinRole(session, "superadmin")) {
       return NextResponse.redirect(new URL("/admin/grilla", request.url));
     }
   }

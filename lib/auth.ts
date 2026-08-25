@@ -1,16 +1,27 @@
 import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
 
-const SECRET = new TextEncoder().encode(
+export const SECRET = new TextEncoder().encode(
   process.env.ADMIN_JWT_SECRET ?? "fallback-dev-secret-change-in-prod"
 );
 
-const COOKIE_NAME = "admin_session";
+export const COOKIE_NAME = "admin_session";
+
+export type Role = "admin" | "superadmin" | "root";
+
+export const ROLE_LEVEL: Record<Role, number> = {
+  admin: 0,
+  superadmin: 1,
+  root: 2,
+};
+
+export function hasMinRole(session: AdminSession, min: Role): boolean {
+  return ROLE_LEVEL[session.rol] >= ROLE_LEVEL[min];
+}
 
 export type AdminSession = {
   id: string;
   nombre: string;
-  rol: "admin" | "superadmin";
+  rol: Role;
   telefono: string;
 };
 
@@ -29,13 +40,6 @@ export async function verifySession(token: string): Promise<AdminSession | null>
   } catch {
     return null;
   }
-}
-
-export async function getSession(): Promise<AdminSession | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(COOKIE_NAME)?.value;
-  if (!token) return null;
-  return verifySession(token);
 }
 
 export function getSessionCookieConfig(token: string) {

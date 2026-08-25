@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth.server";
 
 export async function GET() {
   const session = await getSession();
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
   if (!tipo_cancha_id) {
     return NextResponse.json({ error: "tipo_cancha_id es requerido" }, { status: 400 });
   }
-  if (!hora_desde || !hora_hasta || hora_desde >= hora_hasta) {
+  if (!hora_desde || !hora_hasta || (hora_hasta !== "00:00" && hora_desde >= hora_hasta)) {
     return NextResponse.json({ error: "hora_desde debe ser anterior a hora_hasta" }, { status: 400 });
   }
   if (!precio || Number(precio) <= 0) {
@@ -36,20 +36,25 @@ export async function POST(request: NextRequest) {
   }
 
   const hoy = new Date().toISOString().slice(0, 10);
+  const vigenciaEfectiva = vigente_desde ?? hoy;
 
   const supabase = await createSupabaseServerClient();
 
-  // Validar solapamiento con reglas activas del mismo tipo
+  // Normaliza "00:00" a "24:00" para comparación de strings
+  function norm(h: string) { return h === "00:00" ? "24:00" : h; }
+
+  // Validar solapamiento con reglas activas del mismo tipo y misma vigencia
   const { data: existentes } = await supabase
     .from("precio_reglas")
-    .select("id, hora_desde, hora_hasta, dias_semana")
+    .select("id, hora_desde, hora_hasta, dias_semana, vigente_desde")
     .eq("tipo_cancha_id", Number(tipo_cancha_id))
     .eq("activa", true);
 
   const conflicto = (existentes ?? []).find((r) => {
-    const hDesde = r.hora_desde.slice(0, 5);
-    const hHasta = r.hora_hasta.slice(0, 5);
-    if (!(hora_desde < hHasta && hDesde < hora_hasta)) return false;
+    if (r.vigente_desde !== vigenciaEfectiva) return false;
+    const hDesde = norm(r.hora_desde.slice(0, 5));
+    const hHasta = norm(r.hora_hasta.slice(0, 5));
+    if (!(hora_desde < hHasta && hDesde < norm(hora_hasta))) return false;
     const aDias: number[] | null = dias_semana ?? null;
     const bDias: number[] | null = r.dias_semana as number[] | null;
     if (aDias === null || bDias === null) return true;

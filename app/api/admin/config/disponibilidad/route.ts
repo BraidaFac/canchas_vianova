@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth.server";
 
 export async function PUT(request: NextRequest) {
   const session = await getSession();

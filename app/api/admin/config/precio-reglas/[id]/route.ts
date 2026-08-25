@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth.server";
 
 export async function PATCH(
   request: NextRequest,
@@ -29,7 +29,7 @@ export async function PATCH(
   if (afectaHorario) {
     const { data: actual, error: fetchErr } = await supabase
       .from("precio_reglas")
-      .select("tipo_cancha_id, hora_desde, hora_hasta, dias_semana")
+      .select("tipo_cancha_id, hora_desde, hora_hasta, dias_semana, vigente_desde")
       .eq("id", Number(id))
       .single();
 
@@ -43,21 +43,29 @@ export async function PATCH(
       ? (updates.dias_semana as number[] | null)
       : (actual.dias_semana as number[] | null);
 
-    if (horaDesde >= horaHasta) {
+    if (horaHasta !== "00:00" && horaDesde >= horaHasta) {
       return NextResponse.json({ error: "hora_desde debe ser anterior a hora_hasta" }, { status: 400 });
     }
 
+    // Normaliza "00:00" a "24:00" para comparación de strings
+    function norm(h: string) { return h === "00:00" ? "24:00" : h; }
+
+    const vigenciaEfectiva = "vigente_desde" in updates
+      ? (updates.vigente_desde as string)
+      : actual.vigente_desde;
+
     const { data: existentes } = await supabase
       .from("precio_reglas")
-      .select("id, hora_desde, hora_hasta, dias_semana")
+      .select("id, hora_desde, hora_hasta, dias_semana, vigente_desde")
       .eq("tipo_cancha_id", actual.tipo_cancha_id)
       .eq("activa", true)
       .neq("id", Number(id));
 
     const conflicto = (existentes ?? []).find((r) => {
-      const hd = r.hora_desde.slice(0, 5);
-      const hh = r.hora_hasta.slice(0, 5);
-      if (!(horaDesde < hh && hd < horaHasta)) return false;
+      if (r.vigente_desde !== vigenciaEfectiva) return false;
+      const hd = norm(r.hora_desde.slice(0, 5));
+      const hh = norm(r.hora_hasta.slice(0, 5));
+      if (!(horaDesde < hh && hd < norm(horaHasta))) return false;
       const bDias: number[] | null = r.dias_semana as number[] | null;
       if (diasSemana === null || bDias === null) return true;
       return diasSemana.some((d) => bDias.includes(d));

@@ -57,16 +57,12 @@ type DatosBancarios = {
 };
 type Disponibilidad = { cancha_id: number; dia_semana: number; habilitada: boolean };
 type Turno = { id: number; hora_inicio: string; hora_fin: string };
-type BotConfig = { clave: string; valor: string; descripcion: string | null; updated_at: string };
-
 export default function ConfigClient({
   canchas,
   precioReglas,
   datosBancarios,
   disponibilidad: initialDisponibilidad,
   turnos: initialTurnos,
-  botConfig,
-  esSuperAdmin = false,
   tiposCancha,
   espacios,
 }: {
@@ -75,8 +71,6 @@ export default function ConfigClient({
   datosBancarios: DatosBancarios[];
   disponibilidad: Disponibilidad[];
   turnos: Turno[];
-  botConfig: BotConfig[];
-  esSuperAdmin?: boolean;
   tiposCancha: TipoCancha[];
   espacios: Espacio[];
 }) {
@@ -154,7 +148,6 @@ export default function ConfigClient({
               <TabsTrigger value="turnos">Turnos</TabsTrigger>
               <TabsTrigger value="precios">Precios</TabsTrigger>
               <TabsTrigger value="bancarios">Datos bancarios</TabsTrigger>
-              {esSuperAdmin && <TabsTrigger value="bot">Bot n8n</TabsTrigger>}
             </TabsList>
           </div>
 
@@ -257,13 +250,6 @@ export default function ConfigClient({
             />
           </TabsContent>
 
-          {/* BOT N8N — solo superadmin */}
-          {esSuperAdmin && (
-            <TabsContent value="bot">
-              <BotConfigTab botConfig={botConfig} onSaved={() => router.refresh()} />
-            </TabsContent>
-          )}
-
           {/* DATOS BANCARIOS */}
           <TabsContent value="bancarios">
             <div className="space-y-4">
@@ -340,13 +326,14 @@ function PrecioReglasTab({
   const [form, setForm] = useState<ReglaForm>({
     tipo_cancha_id: tipos[0]?.id ?? 0,
     hora_desde: "08:00",
-    hora_hasta: "23:59",
+    hora_hasta: "00:00",
     dias_semana: null,
     precio: "",
     vigente_desde: hoy,
   });
   const [loading, setLoading] = useState(false);
   const [todosLosDias, setTodosLosDias] = useState(true);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
   function openCreate(tipoCanchaId: number) {
     setEditingId(null);
@@ -354,7 +341,7 @@ function PrecioReglasTab({
     setForm({
       tipo_cancha_id: tipoCanchaId,
       hora_desde: "08:00",
-      hora_hasta: "23:59",
+      hora_hasta: "00:00",
       dias_semana: null,
       precio: "",
       vigente_desde: hoy,
@@ -399,7 +386,7 @@ function PrecioReglasTab({
       toast.error("El precio debe ser mayor a 0");
       return;
     }
-    if (!form.hora_desde || !form.hora_hasta || form.hora_desde >= form.hora_hasta) {
+    if (!form.hora_desde || !form.hora_hasta || (form.hora_hasta !== "00:00" && form.hora_desde >= form.hora_hasta)) {
       toast.error("hora_desde debe ser anterior a hora_hasta");
       return;
     }
@@ -444,6 +431,7 @@ function PrecioReglasTab({
 
   async function handleDelete(id: number) {
     const res = await fetch(`/api/admin/config/precio-reglas/${id}`, { method: "DELETE" });
+    setPendingDeleteId(null);
     if (res.ok) {
       toast.success("Regla eliminada");
       onSaved();
@@ -513,7 +501,7 @@ function PrecioReglasTab({
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 text-destructive hover:text-destructive"
-                        onClick={() => handleDelete(regla.id)}
+                        onClick={() => setPendingDeleteId(regla.id)}
                       >
                         <Trash2 size={12} />
                       </Button>
@@ -525,6 +513,19 @@ function PrecioReglasTab({
           </div>
         );
       })}
+
+      <Dialog open={pendingDeleteId !== null} onOpenChange={(v) => { if (!v) setPendingDeleteId(null); }}>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Eliminar regla</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">Esta acción no se puede deshacer. ¿Querés eliminar esta regla de precio?</p>
+          <DialogFooter>
+            <Button variant="ghost" size="sm" onClick={() => setPendingDeleteId(null)}>Cancelar</Button>
+            <Button variant="destructive" size="sm" onClick={() => pendingDeleteId !== null && handleDelete(pendingDeleteId)}>Eliminar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={dialogOpen} onOpenChange={(v) => { if (!v) setDialogOpen(false); }}>
         <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
@@ -567,6 +568,7 @@ function PrecioReglasTab({
                 <TimePicker
                   value={form.hora_hasta}
                   onChange={v => setForm(f => ({ ...f, hora_hasta: v }))}
+                  midnightAtEnd
                 />
               </div>
             </div>
@@ -708,22 +710,21 @@ function TurnosTab({
       <div className="rounded-lg border border-border bg-card px-4 py-3">
         <p className="text-sm font-medium mb-3">Agregar turno</p>
         <div className="flex flex-wrap items-end gap-3">
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 w-32">
             <label className="text-xs text-muted-foreground">Hora inicio</label>
-            <Input
-              type="time"
+            <TimePicker
               value={horaInicio}
-              onChange={(e) => setHoraInicio(e.target.value)}
-              className="h-8 w-28 text-sm"
+              onChange={setHoraInicio}
+              className="h-8"
             />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 w-32">
             <label className="text-xs text-muted-foreground">Hora fin</label>
-            <Input
-              type="time"
+            <TimePicker
               value={horaFin}
-              onChange={(e) => setHoraFin(e.target.value)}
-              className="h-8 w-28 text-sm"
+              onChange={setHoraFin}
+              className="h-8"
+              midnightAtEnd
             />
           </div>
           <Button size="sm" onClick={agregar} disabled={loading}>
@@ -762,134 +763,6 @@ function TurnosTab({
   );
 }
 
-// ─── Bot n8n config ──────────────────────────────────────────────────────────
-
-function BotConfigTab({
-  botConfig: initialConfig,
-  onSaved,
-}: {
-  botConfig: BotConfig[];
-  onSaved: () => void;
-}) {
-  const [config, setConfig] = useState(initialConfig);
-  const [saving, setSaving] = useState<string | null>(null);
-
-  async function updateConfig(clave: string, valor: string) {
-    setSaving(clave);
-    const res = await fetch("/api/admin/config/bot", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clave, valor }),
-    });
-    if (res.ok) {
-      setConfig((prev) => prev.map((c) => (c.clave === clave ? { ...c, valor } : c)));
-      toast.success("Configuración actualizada");
-      onSaved();
-    } else {
-      const json = await res.json().catch(() => ({}));
-      toast.error(json.error ?? "Error al guardar");
-    }
-    setSaving(null);
-  }
-
-  if (config.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground text-center py-8">
-        No hay configuraciones registradas en bot_config.
-      </p>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">
-        Configuraciones del bot de WhatsApp (n8n). Cambios se aplican en tiempo real.
-      </p>
-      {config.map((item) => {
-        const isBoolean = item.valor === "true" || item.valor === "false";
-        const isOn = item.valor === "true";
-        return (
-          <div
-            key={item.clave}
-            className="flex flex-col gap-2 px-4 py-3 rounded-lg border border-border bg-card sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="min-w-0">
-              <p className="text-sm font-medium">{item.descripcion ?? item.clave}</p>
-              <p className="text-xs text-muted-foreground font-mono mt-0.5">{item.clave}</p>
-            </div>
-            {isBoolean ? (
-              <button
-                disabled={saving === item.clave}
-                onClick={() => updateConfig(item.clave, isOn ? "false" : "true")}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                  isOn ? "bg-primary" : "bg-input"
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-background shadow-lg transition-transform ${
-                    isOn ? "translate-x-5" : "translate-x-0"
-                  }`}
-                />
-              </button>
-            ) : (
-              <StringConfigInput
-                value={item.valor}
-                disabled={saving === item.clave}
-                onSave={(val) => updateConfig(item.clave, val)}
-              />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function StringConfigInput({
-  value: initialValue,
-  disabled,
-  onSave,
-}: {
-  value: string;
-  disabled: boolean;
-  onSave: (val: string) => void;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(initialValue);
-
-  if (!editing) {
-    return (
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-mono text-muted-foreground">{initialValue}</span>
-        <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
-          Editar
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Input
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        className="h-8 w-full sm:w-36 text-sm font-mono"
-      />
-      <div className="flex gap-2">
-        <Button
-          size="sm"
-          disabled={disabled}
-          onClick={() => { onSave(value); setEditing(false); }}
-        >
-          Guardar
-        </Button>
-        <Button size="sm" variant="ghost" onClick={() => { setValue(initialValue); setEditing(false); }}>
-          Cancelar
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 // ─── Estructura Tab ──────────────────────────────────────────────────────────
 

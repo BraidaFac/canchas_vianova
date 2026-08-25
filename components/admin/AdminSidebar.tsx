@@ -15,11 +15,12 @@ import {
   PanelLeftOpen,
   Contact,
   Trophy,
+  Bot,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { AdminSession } from "@/lib/auth";
+import { AdminSession, hasMinRole } from "@/lib/auth";
 import { toast } from "sonner";
 
 const navItems = [
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/admin/reservas", label: "Reservas", icon: List },
   { href: "/admin/clientes", label: "Clientes", icon: Contact },
   { href: "/admin/eventos", label: "Eventos", icon: Trophy },
+  { href: "/admin/bot", label: "Bot", icon: Bot },
   { href: "/admin/empleados", label: "Empleados", icon: Users, superadminOnly: true },
   { href: "/admin/config", label: "Configuración", icon: Settings },
 ];
@@ -43,7 +45,7 @@ export default function AdminSidebar({ session, collapsed, onCollapsedChange }: 
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const visibleItems = navItems.filter(
-    (item) => !item.superadminOnly || session.rol === "superadmin"
+    (item) => !item.superadminOnly || hasMinRole(session, "superadmin")
   );
 
   async function handleLogout() {

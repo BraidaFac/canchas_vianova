@@ -1,14 +1,10 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import ConfigClient from "@/components/admin/ConfigClient";
-import { getSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function ConfigPage() {
-  const session = await getSession();
   const supabase = await createSupabaseServerClient();
-
-  const esSuperAdmin = session?.rol === "superadmin";
 
   const [
     { data: canchas },
@@ -16,7 +12,6 @@ export default async function ConfigPage() {
     { data: datosBancarios },
     { data: disponibilidad },
     { data: turnos },
-    { data: botConfig },
     { data: tiposCancha },
     { data: espacios },
   ] = await Promise.all([
@@ -36,9 +31,6 @@ export default async function ConfigPage() {
       .select("cancha_id, dia_semana, habilitada")
       .order("cancha_id"),
     supabase.from("turnos").select("id, hora_inicio, hora_fin").order("hora_inicio"),
-    esSuperAdmin
-      ? supabase.from("bot_config").select("clave, valor, descripcion, updated_at").order("clave")
-      : Promise.resolve({ data: [] }),
     supabase.from("tipos_cancha").select("id, nombre, jugadores, clave, activo").order("id"),
     supabase.from("espacios_fisicos").select("id, nombre, activo").order("id"),
   ]);
@@ -58,8 +50,6 @@ export default async function ConfigPage() {
       datosBancarios={datosBancarios ?? []}
       disponibilidad={disponibilidad ?? []}
       turnos={turnos ?? []}
-      botConfig={botConfig ?? []}
-      esSuperAdmin={esSuperAdmin}
       tiposCancha={tiposCancha ?? []}
       espacios={espacios ?? []}
     />

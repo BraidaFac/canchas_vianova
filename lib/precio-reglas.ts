@@ -19,7 +19,7 @@ export function resolvePrecio(
     r.activa &&
     r.vigente_desde <= fecha &&
     r.hora_desde <= h &&
-    r.hora_hasta > h &&
+    (r.hora_hasta === "00:00" || r.hora_hasta > h) &&
     (r.dias_semana === null || r.dias_semana.includes(diaSemana))
   );
 

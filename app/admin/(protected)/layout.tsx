@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth.server";
 import AdminLayoutClient from "@/components/admin/AdminLayoutClient";
 import { Toaster } from "sonner";
 import type { Metadata } from "next";

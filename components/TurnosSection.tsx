@@ -57,6 +57,7 @@ export default function TurnosSection() {
   const [selected, setSelected] = useState<Selected | null>(null);
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
+  const [telefono, setTelefono] = useState("");
 
   const datesRef = useRef<HTMLDivElement>(null);
 
@@ -146,6 +147,7 @@ export default function TurnosSection() {
       `📋 Datos del cliente:`,
       `• Nombre: ${nombre}`,
       `• Apellido: ${apellido}`,
+      `• Teléfono: +54 ${telefono}`,
     ];
     const msg = lineas.join("\n");
     window.open(
@@ -395,10 +397,21 @@ export default function TurnosSection() {
                   className="border-[#133D34]/20 focus-visible:ring-[#133D34]"
                 />
               </div>
+              <div className="flex items-center border border-[#133D34]/20 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-[#133D34] focus-within:ring-offset-0">
+                <span className="px-3 text-sm text-[#1A1A1A]/50 bg-[#F8F6F1] border-r border-[#133D34]/20 h-10 flex items-center select-none">
+                  +54
+                </span>
+                <input
+                  placeholder="3482 xxxxxx"
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ""))}
+                  className="flex-1 px-3 h-10 text-sm outline-none bg-white"
+                />
+              </div>
             </div>
             <Button
               onClick={handleWhatsApp}
-              disabled={!nombre.trim() || !apellido.trim()}
+              disabled={!nombre.trim() || !apellido.trim() || !telefono.trim()}
               className="w-full bg-[#133D34] hover:bg-[#0f2e27] text-white font-semibold h-11"
             >
               Confirmar por WhatsApp
