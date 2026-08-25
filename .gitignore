@@ -43,3 +43,6 @@ next-env.d.ts
 
 # Claude Code local config
 .claude/
+
+# Supabase local temp files
+supabase/.temp/
