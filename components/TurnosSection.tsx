@@ -123,7 +123,6 @@ export default function TurnosSection() {
     setSelected({ turno, cancha: availableCanchas[0], availableCanchas });
     setNombre("");
     setApellido("");
-    setTelefono("3482");
     setBookingOpen(true);
   };
 
