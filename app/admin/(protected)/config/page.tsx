@@ -9,11 +9,11 @@ export default async function ConfigPage() {
   const [
     { data: canchas },
     { data: precioReglasData },
-    { data: datosBancarios },
     { data: disponibilidad },
     { data: turnos },
     { data: tiposCancha },
     { data: espacios },
+    { data: configBot },
   ] = await Promise.all([
     supabase.from("canchas").select("id, espacio_id, nombre, tipo_cancha_id, jugadores, activa, tipos_cancha(id, nombre, jugadores, clave), espacios_fisicos(id, nombre)").order("id"),
     supabase
@@ -23,16 +23,13 @@ export default async function ConfigPage() {
       .order("hora_desde")
       .order("vigente_desde", { ascending: false }),
     supabase
-      .from("datos_bancarios")
-      .select("id, nombre_cuenta, alias, cbu, vigente_desde, activo")
-      .order("vigente_desde", { ascending: false }),
-    supabase
       .from("disponibilidad_cancha")
       .select("cancha_id, dia_semana, habilitada")
       .order("cancha_id"),
     supabase.from("turnos").select("id, hora_inicio, hora_fin").order("hora_inicio"),
     supabase.from("tipos_cancha").select("id, nombre, jugadores, clave, activo").order("id"),
     supabase.from("espacios_fisicos").select("id, nombre, activo").order("id"),
+    supabase.from("config_bot").select("activo").eq("id", 1).single(),
   ]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,11 +44,11 @@ export default async function ConfigPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       canchas={(canchas ?? []) as any[]}
       precioReglas={precioReglas}
-      datosBancarios={datosBancarios ?? []}
       disponibilidad={disponibilidad ?? []}
       turnos={turnos ?? []}
       tiposCancha={tiposCancha ?? []}
       espacios={espacios ?? []}
+      botActivo={configBot?.activo ?? false}
     />
   );
 }

@@ -2,14 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
 import { Trash2, AlertTriangle, Pencil, Plus, Power } from "lucide-react";
 import {
   Tooltip,
@@ -47,35 +45,29 @@ type Cancha = {
   activa: boolean;
 };
 type Espacio = { id: number; nombre: string; activo: boolean };
-type DatosBancarios = {
-  id: number;
-  nombre_cuenta: string;
-  alias: string;
-  cbu: string;
-  vigente_desde: string;
-  activo: boolean;
-};
 type Disponibilidad = { cancha_id: number; dia_semana: number; habilitada: boolean };
 type Turno = { id: number; hora_inicio: string; hora_fin: string };
 export default function ConfigClient({
   canchas,
   precioReglas,
-  datosBancarios,
   disponibilidad: initialDisponibilidad,
   turnos: initialTurnos,
   tiposCancha,
   espacios,
+  botActivo: initialBotActivo,
 }: {
   canchas: Cancha[];
   precioReglas: PrecioRegla[];
-  datosBancarios: DatosBancarios[];
   disponibilidad: Disponibilidad[];
   turnos: Turno[];
   tiposCancha: TipoCancha[];
   espacios: Espacio[];
+  botActivo: boolean;
 }) {
   const router = useRouter();
   const [disponibilidad, setDisponibilidad] = useState(initialDisponibilidad);
+  const [botActivo, setBotActivo] = useState(initialBotActivo);
+  const [botLoading, setBotLoading] = useState(false);
 
   function getDisp(canchaId: number, dia: number) {
     return (
@@ -133,6 +125,23 @@ export default function ConfigClient({
     }
   }
 
+  async function toggleBot() {
+    setBotLoading(true);
+    const next = !botActivo;
+    const res = await fetch("/api/admin/config/bot", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ activo: next }),
+    });
+    if (res.ok) {
+      setBotActivo(next);
+      toast.success(next ? "Bot activado" : "Bot desactivado");
+    } else {
+      toast.error("Error al actualizar el bot");
+    }
+    setBotLoading(false);
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="px-4 py-3 border-b border-border bg-card">
@@ -147,7 +156,7 @@ export default function ConfigClient({
               <TabsTrigger value="disponibilidad">Disponibilidad</TabsTrigger>
               <TabsTrigger value="turnos">Turnos</TabsTrigger>
               <TabsTrigger value="precios">Precios</TabsTrigger>
-              <TabsTrigger value="bancarios">Datos bancarios</TabsTrigger>
+              <TabsTrigger value="bot">Bot</TabsTrigger>
             </TabsList>
           </div>
 
@@ -250,35 +259,31 @@ export default function ConfigClient({
             />
           </TabsContent>
 
-          {/* DATOS BANCARIOS */}
-          <TabsContent value="bancarios">
-            <div className="space-y-4">
-              <DatosBancariosForm onSaved={() => router.refresh()} />
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Historial</p>
-                {datosBancarios.map((db) => (
-                  <div
-                    key={db.id}
-                    className="px-4 py-3 rounded-lg border border-border bg-card text-sm"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="font-medium">{db.nombre_cuenta}</span>
-                        <span className="mx-2 text-muted-foreground">·</span>
-                        <span className="font-mono">{db.alias}</span>
-                      </div>
-                      {db.activo && (
-                        <Badge variant="default" className="text-[10px]">
-                          Activo
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      CBU: {db.cbu} · Desde{" "}
-                      {format(parseISO(db.vigente_desde), "dd/MM/yyyy")}
-                    </p>
-                  </div>
-                ))}
+          {/* BOT */}
+          <TabsContent value="bot">
+            <div className="rounded-lg border border-border bg-card px-4 py-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">WhatsApp Bot</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {botActivo ? "El bot está respondiendo mensajes" : "El bot está pausado globalmente"}
+                  </p>
+                </div>
+                <button
+                  role="switch"
+                  aria-checked={botActivo}
+                  disabled={botLoading}
+                  onClick={toggleBot}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${
+                    botActivo ? "bg-primary" : "bg-input"
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${
+                      botActivo ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
               </div>
             </div>
           </TabsContent>
@@ -1218,74 +1223,3 @@ function CanchasSection({
   );
 }
 
-// ─── Datos bancarios form ────────────────────────────────────────────────────
-
-function DatosBancariosForm({ onSaved }: { onSaved: () => void }) {
-  const { register, handleSubmit, reset } = useForm<{
-    nombre_cuenta: string;
-    alias: string;
-    cbu: string;
-  }>();
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-
-  async function onSubmit(data: { nombre_cuenta: string; alias: string; cbu: string }) {
-    setLoading(true);
-    const res = await fetch("/api/admin/config/bancarios", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (res.ok) {
-      toast.success("Datos bancarios actualizados");
-      reset();
-      setOpen(false);
-      onSaved();
-    } else {
-      toast.error("Error al guardar");
-    }
-    setLoading(false);
-  }
-
-  if (!open) {
-    return (
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-        + Agregar nuevos datos bancarios
-      </Button>
-    );
-  }
-
-  return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="p-4 rounded-lg border border-border bg-card space-y-3"
-    >
-      <p className="text-sm font-medium">Nuevos datos bancarios</p>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div>
-          <label className="text-xs text-muted-foreground">Nombre cuenta</label>
-          <Input {...register("nombre_cuenta", { required: true })} className="mt-1 h-8 text-sm" />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground">Alias</label>
-          <Input {...register("alias", { required: true })} className="mt-1 h-8 text-sm" />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground">CBU</label>
-          <Input
-            {...register("cbu", { required: true })}
-            className="mt-1 h-8 text-sm font-mono"
-          />
-        </div>
-      </div>
-      <div className="flex gap-2">
-        <Button type="submit" size="sm" disabled={loading}>
-          Guardar
-        </Button>
-        <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>
-          Cancelar
-        </Button>
-      </div>
-    </form>
-  );
-}
