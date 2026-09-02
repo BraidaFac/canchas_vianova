@@ -34,22 +34,22 @@ type Sesion = {
   cliente_id: string | null;
 };
 
-type EstadoFiltro = "todos" | "activo" | "esperando" | "pausado_por_bot";
+type EstadoFiltro = "todos" | "reactivado" | "esperando" | "pausado";
 
 const ESTADO_LABELS: Record<string, string> = {
-  activo: "Activo",
+  reactivado: "Activo",
   esperando_opcion: "Esperando opción",
   esperando_seleccion_turno: "Eligiendo turno",
   esperando_confirmacion_turno: "Confirmando turno",
-  pausado_por_bot: "Pausado",
+  pausado: "Pausado",
 };
 
 const ESTADO_BADGE: Record<string, string> = {
-  activo: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  reactivado: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
   esperando_opcion: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
   esperando_seleccion_turno: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
   esperando_confirmacion_turno: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  pausado_por_bot: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  pausado: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
 };
 
 export default function SesionesBotClient({ sesiones: initialSesiones }: { sesiones: Sesion[] }) {
@@ -97,9 +97,9 @@ export default function SesionesBotClient({ sesiones: initialSesiones }: { sesio
 
   const filtros: { key: EstadoFiltro; label: string }[] = [
     { key: "todos", label: "Todos" },
-    { key: "activo", label: "Activo" },
+    { key: "reactivado", label: "Activo" },
     { key: "esperando", label: "Esperando" },
-    { key: "pausado_por_bot", label: "Pausado" },
+    { key: "pausado", label: "Pausado" },
   ];
 
   return (
@@ -164,7 +164,7 @@ export default function SesionesBotClient({ sesiones: initialSesiones }: { sesio
             <tbody className="divide-y divide-border">
               {filtradas.map((s) => {
                 const dp = s.datos_pendientes;
-                const esPausada = s.estado === "pausado_por_bot";
+                const esPausada = s.estado === "pausado";
                 return (
                   <tr
                     key={s.telefono}

@@ -20,13 +20,13 @@ export async function PATCH(
     .single();
 
   if (!sesion) return NextResponse.json({ error: "Sesión no encontrada" }, { status: 404 });
-  if (sesion.estado !== "pausado_por_bot") {
+  if (sesion.estado !== "pausado") {
     return NextResponse.json({ error: "Solo se pueden liberar sesiones pausadas" }, { status: 400 });
   }
 
   const { error } = await supabase
     .from("sesiones_bot")
-    .update({ estado: "activo", ultima_actividad: new Date().toISOString() })
+    .update({ estado: "reactivado", ultima_actividad: new Date().toISOString() })
     .eq("telefono", telefono);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

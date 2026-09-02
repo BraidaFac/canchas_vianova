@@ -205,9 +205,13 @@ export default function ReservasClient({
                       {r.turnos?.hora_inicio.slice(0, 5) ?? "—"}
                     </td>
                     <td className="px-3 py-2.5">
-                      {r.recurrente_id != null && (
+                      {r.recurrente_id != null ? (
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
                           Fijo
+                        </span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground">
+                          Normal
                         </span>
                       )}
                     </td>
