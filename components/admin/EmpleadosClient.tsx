@@ -46,7 +46,7 @@ const empleadoSchema = z.object({
   nombre: z.string().min(2, "Mínimo 2 caracteres"),
   telefono: z.string().min(10, "Teléfono inválido"),
   username: z.string().min(3, "Mínimo 3 caracteres").or(z.literal("")).optional(),
-  pin: z.string().min(4, "PIN mínimo 4 dígitos").max(8),
+  pin: z.string().max(8).refine((v) => v === "" || v.length >= 4, "PIN mínimo 4 dígitos"),
   rol: z.enum(["admin", "superadmin"]),
 });
 
@@ -82,6 +82,10 @@ export default function EmpleadosClient({
   }
 
   async function onSubmit(data: EmpleadoForm) {
+    if (!editando && !data.pin) {
+      form.setError("pin", { message: "PIN requerido para nuevo empleado" });
+      return;
+    }
     setLoading(true);
     const url = editando ? `/api/admin/empleados/${editando.id}` : "/api/admin/empleados";
     const method = editando ? "PUT" : "POST";
