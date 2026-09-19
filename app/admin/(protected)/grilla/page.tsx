@@ -12,13 +12,21 @@ function sortTurnos<T extends { hora_inicio: string }>(arr: T[]): T[] {
   });
 }
 
-type CanchaRow = { id: number; nombre: string; tipo_cancha_id: number; tipo_cancha?: { clave: string | null; nombre: string }; jugadores: number; activa: boolean; espacio_id: number };
+type CanchaRow = {
+  id: number;
+  nombre: string;
+  tipo_cancha_id: number;
+  tipo_cancha?: { clave: string | null; nombre: string };
+  jugadores: number;
+  activa: boolean;
+  espacio_id: number;
+};
 
 function canchaDisponibleParaDia(
   cancha: CanchaRow,
   todasCanchas: CanchaRow[],
   dispSemanal: { cancha_id: number; habilitada: boolean }[],
-  overrides: { cancha_id: number | null; habilitada: boolean }[]
+  overrides: { cancha_id: number | null; habilitada: boolean }[],
 ): boolean {
   // cancha-specific override first, then global (cancha_id IS NULL)
   const ovCancha = overrides.find((o) => o.cancha_id === cancha.id);
@@ -37,7 +45,7 @@ function canchaDisponibleParaDia(
         c.espacio_id === cancha.espacio_id &&
         c.tipo_cancha?.clave === "f5" &&
         c.activa &&
-        dispSemanal.some((d) => d.cancha_id === c.id && d.habilitada)
+        dispSemanal.some((d) => d.cancha_id === c.id && d.habilitada),
     );
     if (hasActiveF5) return false;
   }
@@ -55,7 +63,7 @@ export default async function GrillaPage({
   const params = await searchParams;
   const today = format(new Date(), "yyyy-MM-dd");
   const fecha = params.fecha ?? today;
-  const endDate = format(addDays(new Date(), 14), "yyyy-MM-dd");
+  //const endDate = format(addDays(new Date(), 14), "yyyy-MM-dd");
 
   // needed before queries for disponibilidad_cancha filter
   const diaSemana = new Date(fecha + "T12:00:00").getDay();
@@ -75,7 +83,9 @@ export default async function GrillaPage({
   ] = await Promise.all([
     supabase
       .from("canchas")
-      .select("id, nombre, tipo_cancha_id, jugadores, activa, espacio_id, tipos_cancha(id, nombre, jugadores, clave)")
+      .select(
+        "id, nombre, tipo_cancha_id, jugadores, activa, espacio_id, tipos_cancha(id, nombre, jugadores, clave)",
+      )
       .eq("activa", true)
       .order("id"),
 
@@ -87,27 +97,35 @@ export default async function GrillaPage({
     // Vista A: solo la fecha seleccionada (canceladas incluidas para suprimir fijo en ese slot)
     supabase
       .from("reservas")
-      .select("id, id_legible, estado, canal, cancha_id, turno_id, monto_total, monto_abonado, recurrente_id, fecha, clientes(nombre, telefono)")
+      .select(
+        "id, id_legible, estado, canal, cancha_id, turno_id, monto_total, monto_abonado, recurrente_id, fecha, clientes(nombre, telefono)",
+      )
       .eq("fecha", fecha)
       .in("estado", ["pendiente_pago", "confirmada", "cancelada"]),
 
     // Vista Lista: próximos 15 días (canceladas incluidas para suprimir fijo)
     supabase
       .from("reservas")
-      .select("id, id_legible, estado, canal, cancha_id, turno_id, monto_total, monto_abonado, recurrente_id, fecha, clientes(nombre, telefono)")
+      .select(
+        "id, id_legible, estado, canal, cancha_id, turno_id, monto_total, monto_abonado, recurrente_id, fecha, clientes(nombre, telefono)",
+      )
       .gte("fecha", today)
-      .lte("fecha", endDate)
+      //.lte("fecha", endDate)
       .in("estado", ["pendiente_pago", "confirmada", "cancelada"]),
 
     // Todos los fijos activos
     supabase
       .from("reservas_recurrentes")
-      .select("id, cancha_id, turno_id, dia_semana, clientes(id, nombre, telefono)")
+      .select(
+        "id, cancha_id, turno_id, dia_semana, clientes(id, nombre, telefono)",
+      )
       .eq("activa", true),
 
     supabase
       .from("precio_reglas")
-      .select("id, tipo_cancha_id, hora_desde, hora_hasta, dias_semana, precio, vigente_desde, activa")
+      .select(
+        "id, tipo_cancha_id, hora_desde, hora_hasta, dias_semana, precio, vigente_desde, activa",
+      )
       .eq("activa", true)
       .order("vigente_desde", { ascending: false }),
 
@@ -126,19 +144,22 @@ export default async function GrillaPage({
     // Eventos activos que se superponen con el rango visible
     supabase
       .from("eventos")
-      .select("id, nombre, tipo, fecha_inicio, fecha_fin, evento_slots(cancha_id, turno_id, dia_semana)")
+      .select(
+        "id, nombre, tipo, fecha_inicio, fecha_fin, evento_slots(cancha_id, turno_id, dia_semana)",
+      )
       .eq("estado", "activo")
-      .lte("fecha_inicio", endDate)
+      //.lte("fecha_inicio", endDate)
       .gte("fecha_fin", today),
   ]);
-
-  const precioReglas = (precioReglasData ?? []).map(r => ({
+  const precioReglas = (precioReglasData ?? []).map((r) => ({
     ...r,
     hora_desde: r.hora_desde.slice(0, 5),
     hora_hasta: r.hora_hasta.slice(0, 5),
   }));
 
-  const fijosDelDia = (todosLosFijos ?? []).filter((f) => f.dia_semana === diaSemana);
+  const fijosDelDia = (todosLosFijos ?? []).filter(
+    (f) => f.dia_semana === diaSemana,
+  );
 
   const todasCanchas = (canchas ?? []) as CanchaRow[];
 
@@ -148,8 +169,11 @@ export default async function GrillaPage({
       c,
       todasCanchas,
       (dispSemanal ?? []) as { cancha_id: number; habilitada: boolean }[],
-      (dispOverrides ?? []) as { cancha_id: number | null; habilitada: boolean }[]
-    )
+      (dispOverrides ?? []) as {
+        cancha_id: number | null;
+        habilitada: boolean;
+      }[],
+    ),
   );
 
   return (
