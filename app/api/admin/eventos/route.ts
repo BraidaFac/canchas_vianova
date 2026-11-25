@@ -73,10 +73,11 @@ async function checkConflictos(
 
   // Exclude reservas that already belong to this event (on edit)
   if (excludeEventoId) {
-    query = query.is("evento_id", null).or(`evento_id.neq.${excludeEventoId}`);
+    query = query.or(`evento_id.is.null,evento_id.neq.${excludeEventoId}`);
   }
 
-  const { data: reservas } = await query;
+  const { data: reservas, error } = await query;
+  if (error) throw new Error(`Error validando conflictos: ${error.message}`);
   if (!reservas?.length) return [];
 
   const conflictos: string[] = [];
